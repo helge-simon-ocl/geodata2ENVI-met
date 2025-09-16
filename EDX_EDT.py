@@ -142,9 +142,6 @@ class EDT:
             self.var_name = var_name
             self.z = z
             self.terrain_follow = self.check_for_terrain(filepath)
-            # TODO @HSI
-            # Check for nesting cells by iteration over spacing_x/y
-            # Memorize number of nestiung cells. Size specified_data-array accordingly. Adjust iteration start and end
             # in load_defined_data / load_defined_data_dem
             if self.terrain_follow:
                 offset = self.calc_offset(' Objects ( )', 0)

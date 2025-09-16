@@ -3274,8 +3274,8 @@ class Worker(QThread):
         context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)
         tstpA = merged.timestepA
         tstpB = merged.timestepB
-        targetResA = min(min(tstpA.spacing_x[0], tstpA.spacing_y[0]), 1.00)
-        targetResB = min(min(tstpB.spacing_x[0], tstpB.spacing_y[0]), 1.00)
+        targetResA = min(min(tstpA.spacing_x[len(tstpA.spacing_x) // 2], tstpA.spacing_y[len(tstpA.spacing_y) // 2]), 1.00)
+        targetResB = min(min(tstpB.spacing_x[len(tstpB.spacing_x) // 2], tstpB.spacing_y[len(tstpB.spacing_y) // 2]), 1.00)
         crs, qgs_crsA = self.getQGIS_crs(tstpA)
         crs, qgs_crsB = self.getQGIS_crs(tstpB)
         if (targetResA != targetResB) or (qgs_crsA != qgs_crsB):
@@ -3455,8 +3455,8 @@ class Worker(QThread):
         extent = QgsRectangle()
         extent.setXMinimum(tstp.location_georef_x)
         extent.setYMinimum(tstp.location_georef_y)
-        extent.setXMaximum(tstp.location_georef_x + cols * tstp.spacing_x[0])
-        extent.setYMaximum(tstp.location_georef_y + rows * tstp.spacing_y[0])
+        extent.setXMaximum(tstp.location_georef_x + cols * tstp.spacing_x[len(tstp.spacing_x) // 2])
+        extent.setYMaximum(tstp.location_georef_y + rows * tstp.spacing_y[len(tstp.spacing_y) // 2])
         crs, qgs_crs = self.getQGIS_crs(tstp)
         # create and define the context for QGIS- and GDAL-functions
         context = dataobjects.createContext()
@@ -3468,7 +3468,7 @@ class Worker(QThread):
                            {
                                'EXTENT': extent,
                                'TARGET_CRS': qgs_crs,
-                               'PIXEL_SIZE': min(tstp.spacing_x[0], tstp.spacing_y[0]),
+                               'PIXEL_SIZE': min(tstp.spacing_x[len(tstp.spacing_x) // 2], tstp.spacing_y[len(tstp.spacing_y) // 2]),
                                'NUMBER': C_NODATA_VALUE,
                                'OUTPUT_TYPE': 5,
                                'OUTPUT': QgsProcessing.TEMPORARY_OUTPUT
@@ -3536,8 +3536,8 @@ class Worker(QThread):
                                 {"INPUT": shplayer_rotated,
                                  "FIELD": 'dataVal',
                                  "UNITS": 1,
-                                 "WIDTH": tstp.spacing_x[0],
-                                 "HEIGHT": tstp.spacing_y[0],
+                                 "WIDTH": tstp.spacing_x[len(tstp.spacing_x) // 2],
+                                 "HEIGHT": tstp.spacing_y[len(tstp.spacing_y) // 2],
                                  "EXTENT": shplayer_rotated.extent(),
                                  "NODATA": C_NODATA_VALUE,
                                  "DATA_TYPE": 5,
@@ -3553,7 +3553,7 @@ class Worker(QThread):
         provider.reload()
 
         # Interpolation resolution is max 1.00.
-        targetRes = min(min(tstp.spacing_x[0], tstp.spacing_y[0]), 1.00)
+        targetRes = min(min(tstp.spacing_x[len(tstp.spacing_x) // 2], tstp.spacing_y[len(tstp.spacing_y) // 2]), 1.00)
         # resample data
         resample = processing.run("gdal:warpreproject",
                                   {'INPUT': rasterlayer_rotated,
