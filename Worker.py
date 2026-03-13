@@ -10,8 +10,8 @@ from qgis.core import QgsProject, Qgis, QgsField, QgsMapLayerProxyModel, QgsPoin
     QgsMarkerSymbolLayer, QgsFontMarkerSymbolLayer, QgsProperty, QgsGraduatedSymbolRenderer, QgsVectorFieldSymbolLayer
 from qgis.PyQt.QtCore import *
 # Import necessary QGIS classes
-from PyQt5.QtCore import QPointF, QSizeF, QRectF, QSize
-from PyQt5.QtGui import QColor, QImage, QImageWriter, QPainter
+from qgis.PyQt.QtCore import QPointF, QSizeF, QRectF, QSize
+from qgis.PyQt.QtGui import QColor, QImage, QImageWriter, QPainter
 # Initialize Qt resources from file resources.py
 from .resources import *
 # Import the code for the dialog
@@ -230,7 +230,7 @@ class Worker(QThread):
         anch = str(xMin_s) + "," + str(yMin_s) + " [" + epsg_s + "]"
 
         context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
+        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
         rlayer = processing.run("native:rotatefeatures",
                                 {"INPUT": lay,
                                  "ANGLE": self.model_rot,
@@ -439,7 +439,7 @@ class Worker(QThread):
                 self.msg = 'Error:Please provide a layer featuring a single rectangular polygon (4 vertices). The use of the "Shape Digitizing Toolbar" is recommended.'
 
     def get_time_zone_geonames(self):
-        QgsMessageLog.logMessage("Getting Timezone...", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Getting Timezone...", 'ENVI-met', level=Qgis.MessageLevel.Info)
         try:
             url = 'http://api.geonames.org/timezone?lat=' + str(self.lat) + '&lng=' \
                   + str(self.lon) + '&username=envi_met'
@@ -469,7 +469,7 @@ class Worker(QThread):
             return str(s)
 
     def get_elevation_geonames(self):
-        QgsMessageLog.logMessage("Getting Elevation...", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Getting Elevation...", 'ENVI-met', level=Qgis.MessageLevel.Info)
         try:
             response = requests.get('http://api.geonames.org/srtm1XML?lat=' + str(self.lat) + '&lng=' + str(self.lon) + '&username=envi_met')
             if response.status_code == 200:
@@ -520,13 +520,13 @@ class Worker(QThread):
         if (self.bLayer.name() == "notAvail") or ((not self.bTop_UseCustom) and (self.bTop == "")) or (self.bLayer.getFeatures() is None):
             return self.s_buildingDict
 
-        QgsMessageLog.logMessage("Started: Generating Building Info section...", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Started: Generating Building Info section...", 'ENVI-met', level=Qgis.MessageLevel.Info)
         
         # reproject to UTM
         self.bLayer = self.reprojectLayerToUTM(self.bLayer, False)
 
         context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
+        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
         aTmpLayer = processing.run("qgis:extractbylocation", 
                                    {"INPUT": self.bLayer,
                                     "PREDICATE": [0],
@@ -625,16 +625,16 @@ class Worker(QThread):
                 #print(self.s_buildingDict[s_bNumber].BuildingInternalNumber)
                 #print('as')
 
-        QgsMessageLog.logMessage("Finished: Generating Building Info section.", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Finished: Generating Building Info section.", 'ENVI-met', level=Qgis.MessageLevel.Info)
 
     def rasterBNumber(self):
         if self.bLayer_rot.name() == "notAvail":
             tmpAr = np.zeros(shape=(self.JJ, self.II), dtype=int)
             return tmpAr
 
-        QgsMessageLog.logMessage("Started: Gridding Building Numbers...", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Started: Gridding Building Numbers...", 'ENVI-met', level=Qgis.MessageLevel.Info)
         grid1_int_array = self.rasterize_gdal(input_layer=self.bLayer_rot, field='bNum_int')
-        QgsMessageLog.logMessage("Finished: Gridding Building Numbers", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Finished: Gridding Building Numbers", 'ENVI-met', level=Qgis.MessageLevel.Info)
         return grid1_int_array
 
     def rasterBTop(self):
@@ -642,28 +642,28 @@ class Worker(QThread):
             tmpAr = np.zeros(shape=(self.JJ, self.II), dtype=int)
             return tmpAr
 
-        QgsMessageLog.logMessage("Started: Gridding Building Tops...", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Started: Gridding Building Tops...", 'ENVI-met', level=Qgis.MessageLevel.Info)
 
         if self.bTop_UseCustom:
             grid1_int_array = self.rasterize_gdal(input_layer=self.bLayer_rot, field=self.bTop_custom, burn_val=True)
         else:
             grid1_int_array = self.rasterize_gdal(input_layer=self.bLayer_rot, field=self.bTop)
 
-        QgsMessageLog.logMessage("Finished: Gridding Building Tops.", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Finished: Gridding Building Tops.", 'ENVI-met', level=Qgis.MessageLevel.Info)
         return grid1_int_array
 
     def rasterBBot(self):
         if self.bLayer_rot.name() == "notAvail":
             tmpAr = np.zeros(shape=(self.JJ, self.II), dtype=int)
             return tmpAr
-        QgsMessageLog.logMessage("Started: Gridding Building Bottoms...", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Started: Gridding Building Bottoms...", 'ENVI-met', level=Qgis.MessageLevel.Info)
 
         if self.bBot_UseCustom:
             grid1_int_array = self.rasterize_gdal(input_layer=self.bLayer_rot, field=self.bBot_custom, burn_val=True)
         else:
             grid1_int_array = self.rasterize_gdal(input_layer=self.bLayer_rot, field=self.bBot)
 
-        QgsMessageLog.logMessage("Finished: Gridding Building Bottoms.", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Finished: Gridding Building Bottoms.", 'ENVI-met', level=Qgis.MessageLevel.Info)
         return grid1_int_array
 
     def raster_surface_from_vector(self):
@@ -671,13 +671,13 @@ class Worker(QThread):
             tmpAr = np.empty(shape=(self.JJ, self.II), dtype='<U6')
             return tmpAr.fill(self.startSurfID)
 
-        QgsMessageLog.logMessage("Started: Gridding Surfaces...", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Started: Gridding Surfaces...", 'ENVI-met', level=Qgis.MessageLevel.Info)
         
         # reproject to UTM
         self.surfLayer = self.reprojectLayerToUTM(self.surfLayer, False)
 
         context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
+        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
         aTmpLayer = processing.run("qgis:extractbylocation", {
             "INPUT": self.surfLayer,
             "PREDICATE": [0],
@@ -736,7 +736,7 @@ class Worker(QThread):
 
         aTmpDict.clear()
         invTmpDict.clear()
-        QgsMessageLog.logMessage("Finished: Gridding Surfaces.", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Finished: Gridding Surfaces.", 'ENVI-met', level=Qgis.MessageLevel.Info)
         return grid1_str_array
 
     def extent_by_margin(self, margin: int = 100):
@@ -889,7 +889,7 @@ class Worker(QThread):
         # now clip the raster to the extent of boundingBox_margin
         # transform the coordinate system of subArea_nonRot_Extent to the ones of the surface layer
         context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
+        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
         rlayer_clip = processing.run("gdal:cliprasterbyextent",
                                      {"INPUT": input_layer,
                                       "PROJWIN": boundingBox_margin,
@@ -1145,7 +1145,7 @@ class Worker(QThread):
     def rasterize_gdal(self, input_layer, field, get_strArray: bool = False, burn_val: bool = False,
                        init_val=None, no_data_val: int = 0):
         context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
+        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
         if burn_val:
             if init_val is None:
                 rlayer = processing.run("gdal:rasterize",
@@ -1240,13 +1240,13 @@ class Worker(QThread):
             tmpAr = np.zeros(shape=(self.JJ, self.II), dtype='<U6')
             return tmpAr.fill("")
 
-        QgsMessageLog.logMessage("Started: Gridding Simple Plants...", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Started: Gridding Simple Plants...", 'ENVI-met', level=Qgis.MessageLevel.Info)
 
         # reproject to UTM
         self.plant1dLayer = self.reprojectLayerToUTM(self.plant1dLayer, False)
 
         context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)           #QgsFeatureRequest.GeometrySkipInvalid       
+        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)           #QgsFeatureRequest.GeometrySkipInvalid       
         aTmpLayer = processing.run("qgis:extractbylocation", {
             "INPUT": self.plant1dLayer, \
             "PREDICATE": [0], \
@@ -1315,7 +1315,7 @@ class Worker(QThread):
             grid1_str_array[grid1_int_array <= 0] = ""
             grid1_str_array[grid1_int_array == 999] = self.plant1dID_custom
 
-        QgsMessageLog.logMessage("Finished: Gridding Simple Plants.", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Finished: Gridding Simple Plants.", 'ENVI-met', level=Qgis.MessageLevel.Info)
         return grid1_str_array
 
     def buildPlants3d(self):
@@ -1328,7 +1328,7 @@ class Worker(QThread):
         self.plant3dLayer = self.reprojectLayerToUTM(self.plant3dLayer, False)
 
         context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)            #QgsFeatureRequest.GeometrySkipInvalid
+        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)            #QgsFeatureRequest.GeometrySkipInvalid
         aTmpLayer = processing.run("qgis:extractbylocation", {
             "INPUT": self.plant3dLayer, \
             "PREDICATE": [0], \
@@ -1338,7 +1338,7 @@ class Worker(QThread):
                        )
         #QgsProject.instance().addMapLayer(aTmpLayer["OUTPUT"])
 
-        QgsMessageLog.logMessage("Started: Gridding 3D Plants...", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Started: Gridding 3D Plants...", 'ENVI-met', level=Qgis.MessageLevel.Info)
         #self.plant3dLayer_rot = self.rotate_layer(self.plant3dLayer, False)
         self.plant3dLayer_rot = self.rotate_layer(aTmpLayer["OUTPUT"], False)
         
@@ -1403,7 +1403,7 @@ class Worker(QThread):
                             self.s_treeList.append(newTree)
             aTmpDict.clear()
 
-        QgsMessageLog.logMessage("Finished: Gridding 3D Plants.", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Finished: Gridding 3D Plants.", 'ENVI-met', level=Qgis.MessageLevel.Info)
         return self.s_treeList
 
     def getDEM(self, interpolate: int = 1):
@@ -1421,7 +1421,7 @@ class Worker(QThread):
         # transform the coordinate system of subArea_nonRot_Extent to the ones of the DEM
         # subArea_nonRot_Extent = QgsRectangle(-73.99290836344986,40.77707305651126,-73.96828332218108,40.76350771117235)
         context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)  # #"OVERCRS":False a NEW parameter for QGIS > 3.18           #QgsFeatureRequest.GeometrySkipInvalid
+        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)  # #"OVERCRS":False a NEW parameter for QGIS > 3.18           #QgsFeatureRequest.GeometrySkipInvalid
         '''
         rlayer_clip = processing.run("gdal:cliprasterbyextent",
                                      {"INPUT": self.dEMLayer,
@@ -1473,7 +1473,7 @@ class Worker(QThread):
 
         # then vectorize using: raster pixels to points
         context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
+        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
         rlayer_vec = processing.run("native:pixelstopolygons",
                                     {"INPUT_RASTER": rlayerFN_clip,
                                      "RASTER_BAND": self.dEMBand,
@@ -1592,13 +1592,13 @@ class Worker(QThread):
         if self.srcPLayer.name() == "notAvail":
             tmpAr = np.zeros(shape=(self.JJ, self.II), dtype='<U6')
             return tmpAr.fill("")
-        QgsMessageLog.logMessage("Started: Gridding Sources (Points)...", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Started: Gridding Sources (Points)...", 'ENVI-met', level=Qgis.MessageLevel.Info)
 
         # reproject to UTM
         self.srcPLayer = self.reprojectLayerToUTM(self.srcPLayer, False)
 
         context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)            #QgsFeatureRequest.GeometrySkipInvalid
+        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)            #QgsFeatureRequest.GeometrySkipInvalid
         aTmpLayer = processing.run("qgis:extractbylocation", {
             "INPUT": self.srcPLayer, \
             "PREDICATE": [0], \
@@ -1663,7 +1663,7 @@ class Worker(QThread):
 
         aTmpDict.clear()
 
-        QgsMessageLog.logMessage("Finished: Gridding Sources (Points).", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Finished: Gridding Sources (Points).", 'ENVI-met', level=Qgis.MessageLevel.Info)
         return grid1_str_array
 
     def rasterSrcL(self):
@@ -1671,13 +1671,13 @@ class Worker(QThread):
             tmpAr = np.zeros(shape=(self.JJ, self.II), dtype='<U6')
             return tmpAr.fill("")
 
-        QgsMessageLog.logMessage("Started: Gridding Sources (Lines)...", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Started: Gridding Sources (Lines)...", 'ENVI-met', level=Qgis.MessageLevel.Info)
 
         # reproject to UTM
         self.srcLLayer = self.reprojectLayerToUTM(self.srcLLayer, False)
 
         context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)            #QgsFeatureRequest.GeometrySkipInvalid
+        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)            #QgsFeatureRequest.GeometrySkipInvalid
         aTmpLayer = processing.run("qgis:extractbylocation", {
             "INPUT": self.srcLLayer, \
             "PREDICATE": [0], \
@@ -1744,7 +1744,7 @@ class Worker(QThread):
 
         aTmpDict.clear()
 
-        QgsMessageLog.logMessage("Finished: Gridding Sources (Lines).", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Finished: Gridding Sources (Lines).", 'ENVI-met', level=Qgis.MessageLevel.Info)
         return grid1_str_array
 
     def rasterSrcA(self):
@@ -1752,13 +1752,13 @@ class Worker(QThread):
             tmpAr = np.zeros(shape=(self.JJ, self.II), dtype='<U6')
             return tmpAr.fill("")
 
-        QgsMessageLog.logMessage("Started: Gridding Sources (Areas)...", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Started: Gridding Sources (Areas)...", 'ENVI-met', level=Qgis.MessageLevel.Info)
         
         # reproject to UTM
         self.srcALayer = self.reprojectLayerToUTM(self.srcALayer, False)
 
         context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)            #QgsFeatureRequest.GeometrySkipInvalid
+        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)            #QgsFeatureRequest.GeometrySkipInvalid
         aTmpLayer = processing.run("qgis:extractbylocation", {
             "INPUT": self.srcALayer, \
             "PREDICATE": [0], \
@@ -1824,7 +1824,7 @@ class Worker(QThread):
 
         aTmpDict.clear()
 
-        QgsMessageLog.logMessage("Finished: Gridding Sources (Areas).", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Finished: Gridding Sources (Areas).", 'ENVI-met', level=Qgis.MessageLevel.Info)
         return grid1_str_array
 
     def buildReceptors(self):
@@ -1836,7 +1836,7 @@ class Worker(QThread):
         self.recLayer = self.reprojectLayerToUTM(self.recLayer, False)
 
         context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)            #QgsFeatureRequest.GeometrySkipInvalid
+        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)            #QgsFeatureRequest.GeometrySkipInvalid
         aTmpLayer = processing.run("qgis:extractbylocation", {
             "INPUT": self.recLayer, \
             "PREDICATE": [0], \
@@ -1846,7 +1846,7 @@ class Worker(QThread):
                        )
         #QgsProject.instance().addMapLayer(aTmpLayer["OUTPUT"])
 
-        QgsMessageLog.logMessage("Started: Gridding Receptors...", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Started: Gridding Receptors...", 'ENVI-met', level=Qgis.MessageLevel.Info)
         #self.recLayer_rot = self.rotate_layer(self.recLayer, False)
         self.recLayer_rot = self.rotate_layer(aTmpLayer["OUTPUT"], False)
 
@@ -1916,7 +1916,7 @@ class Worker(QThread):
             aTmpDict.clear()
             invTmpDict.clear()
 
-        QgsMessageLog.logMessage("Finished: Gridding Receptors.", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Finished: Gridding Receptors.", 'ENVI-met', level=Qgis.MessageLevel.Info)
         return self.s_recList
     
     def reprojectLayerToUTM(self, aLayer, isSubAreaLayer: bool):
@@ -1950,7 +1950,7 @@ class Worker(QThread):
             self.UTMHemisphere = aUTMZone.split(" ")[1]
 
         context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
+        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
         parameter = {
             'INPUT': aLayer,
             'TARGET_CRS': 'EPSG:' + str(auth_id),
@@ -1968,7 +1968,7 @@ class Worker(QThread):
         #print(auth_id) 
 
         context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
+        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
         reshaped = processing.run("gdal:warpreproject",
                                   {'INPUT': aLayer,
                                    'SOURCE_CRS': aLayer.crs(),
@@ -1986,7 +1986,7 @@ class Worker(QThread):
         return reshaped['OUTPUT']
 
     def saveINX(self):
-        QgsMessageLog.logMessage("--- Started Exporting INX-File ---", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("--- Started Exporting INX-File ---", 'ENVI-met', level=Qgis.MessageLevel.Info)
 
         # precaution -> we always reproject to UTM
         self.subAreaLayer_nonRot = self.reprojectLayerToUTM(self.subAreaLayer_nonRot,True)
@@ -2173,15 +2173,15 @@ class Worker(QThread):
         if (self.dEMLayer.name() == "notAvail") or (self.dEMBand <= 0):
             dem_int_array = np.zeros(shape=(self.JJ, self.II), dtype=int)
         else:
-            QgsMessageLog.logMessage("Started: Gridding Terrain...", 'ENVI-met', level=Qgis.Info)
+            QgsMessageLog.logMessage("Started: Gridding Terrain...", 'ENVI-met', level=Qgis.MessageLevel.Info)
             dem_int_array = self.getDEM(interpolate = self.dEMInterpol)
-            QgsMessageLog.logMessage("Finished: Gridding Terrain.", 'ENVI-met', level=Qgis.Info)
+            QgsMessageLog.logMessage("Finished: Gridding Terrain.", 'ENVI-met', level=Qgis.MessageLevel.Info)
 
         self.elevation = self.get_elevation_geonames()
 
         self.progress.emit(70)
 
-        QgsMessageLog.logMessage("Preparing Model Border...", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Preparing Model Border...", 'ENVI-met', level=Qgis.MessageLevel.Info)
         # empty cells at border -> only for buildings
         if self.removeBBorder > 0:
             bRemSet = set(())
@@ -2209,7 +2209,7 @@ class Worker(QThread):
                         del self.s_buildingDict[bRem]
 
         # check if buildings should be leveled with DEM
-        QgsMessageLog.logMessage("Preparing Buildings in DEM...", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Preparing Buildings in DEM...", 'ENVI-met', level=Qgis.MessageLevel.Info)
         if not (self.dEMLayer.name() == "notAvail") and not (self.dEMBand <= 0) and self.bLeveled:
             # create a new temp empty list of buildings that also holds a list of cells
             bListDEM = []
@@ -2243,7 +2243,7 @@ class Worker(QThread):
                         dem_int_array[c.i, c.j] = dem_int_array[c.i, c.j] - hCorr
 
         # check if vegetation on buildings should be removed
-        QgsMessageLog.logMessage("Check if Vegetation on Buildings should be removed...", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Check if Vegetation on Buildings should be removed...", 'ENVI-met', level=Qgis.MessageLevel.Info)
         if self.removeVegBuild:
             for i in range(bNumber_int_array.shape[0]):
                 for j in range(bNumber_int_array.shape[1]):
@@ -2257,7 +2257,7 @@ class Worker(QThread):
                                 self.s_treeList.remove(tree)
 
         # check buildings need to be removed e.g. building height = 0 or < 0
-        QgsMessageLog.logMessage("Check integrity of Buildings...", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Check integrity of Buildings...", 'ENVI-met', level=Qgis.MessageLevel.Info)
         bRemSet02 = set(())
         for i in range(bTop_int_array.shape[0]):
             for j in range(bTop_int_array.shape[1]):
@@ -2280,7 +2280,7 @@ class Worker(QThread):
                     del self.s_buildingDict[bRem02]                           
 
         self.progress.emit(80)
-        QgsMessageLog.logMessage("Converting Data to ENVI-met model area...", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Converting Data to ENVI-met model area...", 'ENVI-met', level=Qgis.MessageLevel.Info)
         # finally convert to matrix
         bTop_str_matrix = np.array2string(bTop_int_array, max_line_width=1000000, separator=",")
         bTop_str_matrix = bTop_str_matrix.replace(" ", "").replace("[", "").replace("]", "")
@@ -2308,7 +2308,7 @@ class Worker(QThread):
         src_str_matrix = src_str_matrix.replace(" ", "").replace("[", "").replace("]", "").replace("'", "").replace("NULL", "")
 
         self.progress.emit(90)
-        QgsMessageLog.logMessage("Writing file...", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("Writing file...", 'ENVI-met', level=Qgis.MessageLevel.Info)
         with open(self.filename, 'w') as output_file:
             # Print functions
             print("<ENVI-MET_Datafile>", file=output_file)
@@ -2480,7 +2480,7 @@ class Worker(QThread):
             print("</ENVI-MET_Datafile>", file=output_file)
 
         self.progress.emit(100)
-        QgsMessageLog.logMessage("--- Finished Exporting INX-File ---", 'ENVI-met', level=Qgis.Info)
+        QgsMessageLog.logMessage("--- Finished Exporting INX-File ---", 'ENVI-met', level=Qgis.MessageLevel.Info)
 
     def calc_vert_ext(self):
         if self.subAreaLayer.name() == "notAvail":
@@ -2501,7 +2501,7 @@ class Worker(QThread):
 
             # only rotate buildings inside subarea
             context = dataobjects.createContext()
-            context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)               #QgsFeatureRequest.GeometrySkipInvalid         
+            context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)               #QgsFeatureRequest.GeometrySkipInvalid         
             aTmpLayer = processing.run("qgis:extractbylocation", 
                                        {"INPUT": self.bLayer,
                                         "PREDICATE": [0],
@@ -2766,7 +2766,7 @@ class Worker(QThread):
 
         # optional sections
         if simx.SoilSelected:
-            ui.chk_soilSim.setCheckState(Qt.Checked)
+            ui.chk_soilSim.setCheckState(Qt.CheckState.Checked)
             ui.sb_soilHumUpper.setValue(simx.Soil.waterUpperlayer)
             ui.sb_soilHumMiddle.setValue(simx.Soil.waterMiddlelayer)
             ui.sb_soilHumLower.setValue(simx.Soil.waterDeeplayer)
@@ -2776,7 +2776,7 @@ class Worker(QThread):
             ui.sb_soilTlower.setValue(simx.Soil.tempDeeplayer - 273.14999)
             ui.sb_soilTbedrock.setValue(simx.Soil.tempBedrocklayer - 273.14999)
         if simx.RadiationSelected:
-            ui.chk_radiationSim.setCheckState(Qt.Checked)
+            ui.chk_radiationSim.setCheckState(Qt.CheckState.Checked)
 
             if (simx.RadScheme.RayTraceStepWidthHighRes >= 0.5) and (simx.RadScheme.RayTraceStepWidthLowRes >= 0.75):
                 ui.rb_lowRes.setChecked(True)
@@ -2842,7 +2842,7 @@ class Worker(QThread):
                 ui.sb_adjustFac.setValue(simx.SolarAdjust.SWFactor)
 
         if simx.BuildingSelected:
-            ui.chk_buildingsSim.setCheckState(Qt.Checked)
+            ui.chk_buildingsSim.setCheckState(Qt.CheckState.Checked)
             ui.sb_bldTmp.setValue(simx.Building.indoorTemp - 273.14999)
             ui.sb_bldSurfTmp.setValue(simx.Building.surfTemp - 273.14999)
             if simx.Building.indoorConst == 1:
@@ -2850,7 +2850,7 @@ class Worker(QThread):
             else:
                 ui.rb_indoorNo.setChecked(True)
         if simx.PollutantsSelected:
-            ui.chk_pollutantsSim.setCheckState(Qt.Checked)
+            ui.chk_pollutantsSim.setCheckState(Qt.CheckState.Checked)
             ui.sb_NO.setValue(simx.Background.NO)
             ui.sb_NO2.setValue(simx.Background.NO2)
             ui.sb_ozone.setValue(simx.Background.O3)
@@ -2863,27 +2863,27 @@ class Worker(QThread):
             ui.sb_particleDens.setValue(simx.Sources.userPartDensity)
 
         if simx.OutputSelected:
-            ui.chk_outputSim.setCheckState(Qt.Checked)
+            ui.chk_outputSim.setCheckState(Qt.CheckState.Checked)
 
             if simx.OutputSettings.writeBuildings == 1:
-                ui.cb_outputBldData.setCheckState(Qt.Checked)
+                ui.cb_outputBldData.setCheckState(Qt.CheckState.Checked)
             else:
-                ui.cb_outputBldData.setCheckState(Qt.Unchecked)
+                ui.cb_outputBldData.setCheckState(Qt.CheckState.Unchecked)
 
             if simx.OutputSettings.writeRadiation == 1:
-                ui.cb_outputRadData.setCheckState(Qt.Checked)
+                ui.cb_outputRadData.setCheckState(Qt.CheckState.Checked)
             else:
-                ui.cb_outputRadData.setCheckState(Qt.Unchecked)
+                ui.cb_outputRadData.setCheckState(Qt.CheckState.Unchecked)
 
             if simx.OutputSettings.writeSoil == 1:
-                ui.cb_outputSoilData.setCheckState(Qt.Checked)
+                ui.cb_outputSoilData.setCheckState(Qt.CheckState.Checked)
             else:
-                ui.cb_outputSoilData.setCheckState(Qt.Unchecked)
+                ui.cb_outputSoilData.setCheckState(Qt.CheckState.Unchecked)
 
             if simx.OutputSettings.writeVegetation == 1:
-                ui.cb_outputVegData.setCheckState(Qt.Checked)
+                ui.cb_outputVegData.setCheckState(Qt.CheckState.Checked)
             else:
-                ui.cb_outputVegData.setCheckState(Qt.Unchecked)
+                ui.cb_outputVegData.setCheckState(Qt.CheckState.Unchecked)
 
             ui.sb_outputIntRecBld.setValue(simx.OutputSettings.textFiles)
             ui.sb_outputIntOther.setValue(simx.OutputSettings.mainFiles)
@@ -2894,7 +2894,7 @@ class Worker(QThread):
                 ui.rb_writeNetCDFNo.setChecked(True)
 
         if simx.ExpertSelected:
-            ui.chk_expertSim.setCheckState(Qt.Checked)
+            ui.chk_expertSim.setCheckState(Qt.CheckState.Checked)
 
             ui.cb_TKE.setCurrentIndex(simx.Turbulence.turbulenceModel)
 
@@ -2923,7 +2923,7 @@ class Worker(QThread):
             else:
                 ui.rb_oldSOR.setChecked(True)
         if simx.PlantsSelected:
-            ui.chk_plantsSim.setCheckState(Qt.Checked)
+            ui.chk_plantsSim.setCheckState(Qt.CheckState.Checked)
 
             ui.sb_co2.setValue(simx.PlantModel.CO2BackgroundPPM)
             if simx.PlantModel.LeafTransmittance == 1:
@@ -3271,7 +3271,7 @@ class Worker(QThread):
             return
 
         context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)
+        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)
         tstpA = merged.timestepA
         tstpB = merged.timestepB
         targetResA = min(min(tstpA.spacing_x[len(tstpA.spacing_x) // 2], tstpA.spacing_y[len(tstpA.spacing_y) // 2]), 1.00)
@@ -3416,7 +3416,7 @@ class Worker(QThread):
             renderer = QgsSingleBandPseudoColorRenderer(provider, delta_layer.type(), raster_shader)
             delta_layer.setRenderer(renderer)
         else:
-            stats = provider.bandStatistics(1, QgsRasterBandStats.Min | QgsRasterBandStats.Max)
+            stats = provider.bandStatistics(1, QgsRasterBandStats.Stats.Min | QgsRasterBandStats.Stats.Max)
             style = QgsStyle.defaultStyle()
             ramp = style.colorRamp(C_COLOR_SCALE_NAME)
             if C_COLOR_SCALE_INVERT:
@@ -3428,7 +3428,7 @@ class Worker(QThread):
             color_ramp = QgsColorRampShader(stats.minimumValue, stats.maximumValue, ramp,
                                             interpolation, mode)
 
-            if mode == QgsColorRampShader.Quantile:
+            if mode == QgsColorRampShader.ClassificationMode.Quantile:
                 color_ramp.classifyColorRamp(classes=C_COLOR_SCALE_STEPS, band=1, input=provider)
             else:
                 color_ramp.classifyColorRamp(classes=C_COLOR_SCALE_STEPS)
@@ -3460,7 +3460,7 @@ class Worker(QThread):
         crs, qgs_crs = self.getQGIS_crs(tstp)
         # create and define the context for QGIS- and GDAL-functions
         context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.GeometryNoCheck)  # QgsFeatureRequest.GeometrySkipInvalid
+        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)  # QgsFeatureRequest.GeometrySkipInvalid
 
         # Next Step: Create a constant QGIS-layer which has the same extent as the previously defined rectangle
         # initialize it with nodata-values
@@ -3626,7 +3626,7 @@ class Worker(QThread):
                 rasterlayer_final.setRenderer(renderer)
             else:
                 # Otherwise we load the default color-ramp defined in Const_defines
-                stats = provider.bandStatistics(1, QgsRasterBandStats.Min | QgsRasterBandStats.Max)
+                stats = provider.bandStatistics(1, QgsRasterBandStats.Stats.Min | QgsRasterBandStats.Stats.Max)
                 style = QgsStyle.defaultStyle()
                 ramp = style.colorRamp(C_COLOR_SCALE_NAME)
                 if C_COLOR_SCALE_INVERT:
@@ -3637,7 +3637,7 @@ class Worker(QThread):
                 color_ramp = QgsColorRampShader(stats.minimumValue, stats.maximumValue, ramp,
                                                 interpolation, mode)
 
-                if mode == QgsColorRampShader.Quantile:
+                if mode == QgsColorRampShader.ClassificationMode.Quantile:
                     color_ramp.classifyColorRamp(classes=C_COLOR_SCALE_STEPS, band=1, input=provider)
                 else:
                     color_ramp.classifyColorRamp(classes=C_COLOR_SCALE_STEPS)
