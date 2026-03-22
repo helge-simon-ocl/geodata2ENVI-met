@@ -1,7 +1,7 @@
 import math
 import random
 
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, QVariant, QThread, pyqtSignal
+from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, QVariant, QThread, QObject, pyqtSignal
 from qgis.core import QgsProject, Qgis, QgsField, QgsMapLayerProxyModel, QgsPoint, QgsPointXY, QgsVectorLayer, QgsRectangle, \
     QgsFeatureRequest, QgsFieldProxyModel, QgsMessageLog, QgsRasterLayer, QgsMapSettings, QgsPolygon, QgsGeometry, QgsFeature, \
     QgsCoordinateReferenceSystem, QgsRasterFileWriter, QgsRasterPipe, QgsRaster, QgsRasterBlock, QgsSingleBandGrayRenderer, \
@@ -71,12 +71,12 @@ class BLevel:
         self.cellList = []
 
 
-class Worker(QThread):
+class Worker(QObject):
     finished = pyqtSignal()  # create a pyqtSignal for when task is finished
     progress = pyqtSignal(int)  # create a pyqtSignal to report the progress to progressbar
 
     def __init__(self):
-        super(QThread, self).__init__()
+        super(Worker, self).__init__()
         # initialize the stop variable
         self.stopworker = False
 
@@ -229,8 +229,7 @@ class Worker(QThread):
         epsg_s = lay.sourceCrs().authid()
         anch = str(xMin_s) + "," + str(yMin_s) + " [" + epsg_s + "]"
 
-        context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
+        context = self.get_safe_processing_context()
         rlayer = processing.run("native:rotatefeatures",
                                 {"INPUT": lay,
                                  "ANGLE": self.model_rot,
@@ -525,8 +524,7 @@ class Worker(QThread):
         # reproject to UTM
         self.bLayer = self.reprojectLayerToUTM(self.bLayer, False)
 
-        context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
+        context = self.get_safe_processing_context()
         aTmpLayer = processing.run("qgis:extractbylocation", 
                                    {"INPUT": self.bLayer,
                                     "PREDICATE": [0],
@@ -676,8 +674,7 @@ class Worker(QThread):
         # reproject to UTM
         self.surfLayer = self.reprojectLayerToUTM(self.surfLayer, False)
 
-        context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
+        context = self.get_safe_processing_context()
         aTmpLayer = processing.run("qgis:extractbylocation", {
             "INPUT": self.surfLayer,
             "PREDICATE": [0],
@@ -888,8 +885,7 @@ class Worker(QThread):
 
         # now clip the raster to the extent of boundingBox_margin
         # transform the coordinate system of subArea_nonRot_Extent to the ones of the surface layer
-        context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
+        context = self.get_safe_processing_context()
         rlayer_clip = processing.run("gdal:cliprasterbyextent",
                                      {"INPUT": input_layer,
                                       "PROJWIN": boundingBox_margin,
@@ -1144,8 +1140,7 @@ class Worker(QThread):
 
     def rasterize_gdal(self, input_layer, field, get_strArray: bool = False, burn_val: bool = False,
                        init_val=None, no_data_val: int = 0):
-        context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
+        context = self.get_safe_processing_context()
         if burn_val:
             if init_val is None:
                 rlayer = processing.run("gdal:rasterize",
@@ -1245,8 +1240,7 @@ class Worker(QThread):
         # reproject to UTM
         self.plant1dLayer = self.reprojectLayerToUTM(self.plant1dLayer, False)
 
-        context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)           #QgsFeatureRequest.GeometrySkipInvalid       
+        context = self.get_safe_processing_context()
         aTmpLayer = processing.run("qgis:extractbylocation", {
             "INPUT": self.plant1dLayer, \
             "PREDICATE": [0], \
@@ -1327,8 +1321,7 @@ class Worker(QThread):
         # reproject to UTM
         self.plant3dLayer = self.reprojectLayerToUTM(self.plant3dLayer, False)
 
-        context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)            #QgsFeatureRequest.GeometrySkipInvalid
+        context = self.get_safe_processing_context()
         aTmpLayer = processing.run("qgis:extractbylocation", {
             "INPUT": self.plant3dLayer, \
             "PREDICATE": [0], \
@@ -1420,8 +1413,7 @@ class Worker(QThread):
         # now clip the raster to that extent
         # transform the coordinate system of subArea_nonRot_Extent to the ones of the DEM
         # subArea_nonRot_Extent = QgsRectangle(-73.99290836344986,40.77707305651126,-73.96828332218108,40.76350771117235)
-        context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)  # #"OVERCRS":False a NEW parameter for QGIS > 3.18           #QgsFeatureRequest.GeometrySkipInvalid
+        context = self.get_safe_processing_context()
         '''
         rlayer_clip = processing.run("gdal:cliprasterbyextent",
                                      {"INPUT": self.dEMLayer,
@@ -1472,8 +1464,7 @@ class Worker(QThread):
         #print(rlayerFN_clip)             
 
         # then vectorize using: raster pixels to points
-        context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
+        context = self.get_safe_processing_context()
         rlayer_vec = processing.run("native:pixelstopolygons",
                                     {"INPUT_RASTER": rlayerFN_clip,
                                      "RASTER_BAND": self.dEMBand,
@@ -1597,8 +1588,7 @@ class Worker(QThread):
         # reproject to UTM
         self.srcPLayer = self.reprojectLayerToUTM(self.srcPLayer, False)
 
-        context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)            #QgsFeatureRequest.GeometrySkipInvalid
+        context = self.get_safe_processing_context()
         aTmpLayer = processing.run("qgis:extractbylocation", {
             "INPUT": self.srcPLayer, \
             "PREDICATE": [0], \
@@ -1676,8 +1666,7 @@ class Worker(QThread):
         # reproject to UTM
         self.srcLLayer = self.reprojectLayerToUTM(self.srcLLayer, False)
 
-        context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)            #QgsFeatureRequest.GeometrySkipInvalid
+        context = self.get_safe_processing_context()
         aTmpLayer = processing.run("qgis:extractbylocation", {
             "INPUT": self.srcLLayer, \
             "PREDICATE": [0], \
@@ -1757,8 +1746,7 @@ class Worker(QThread):
         # reproject to UTM
         self.srcALayer = self.reprojectLayerToUTM(self.srcALayer, False)
 
-        context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)            #QgsFeatureRequest.GeometrySkipInvalid
+        context = self.get_safe_processing_context()
         aTmpLayer = processing.run("qgis:extractbylocation", {
             "INPUT": self.srcALayer, \
             "PREDICATE": [0], \
@@ -1835,8 +1823,7 @@ class Worker(QThread):
         # reproject to UTM
         self.recLayer = self.reprojectLayerToUTM(self.recLayer, False)
 
-        context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)            #QgsFeatureRequest.GeometrySkipInvalid
+        context = self.get_safe_processing_context()
         aTmpLayer = processing.run("qgis:extractbylocation", {
             "INPUT": self.recLayer, \
             "PREDICATE": [0], \
@@ -1949,8 +1936,7 @@ class Worker(QThread):
             self.UTMZone = aUTMZone.split(" ")[0]
             self.UTMHemisphere = aUTMZone.split(" ")[1]
 
-        context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
+        context = self.get_safe_processing_context()
         parameter = {
             'INPUT': aLayer,
             'TARGET_CRS': 'EPSG:' + str(auth_id),
@@ -1967,8 +1953,7 @@ class Worker(QThread):
         auth_id = self.find_crs_auth_id("WGS 84 / UTM zone " + aUTMZone.replace(' ',''))
         #print(auth_id) 
 
-        context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)          #QgsFeatureRequest.GeometrySkipInvalid
+        context = self.get_safe_processing_context()
         reshaped = processing.run("gdal:warpreproject",
                                   {'INPUT': aLayer,
                                    'SOURCE_CRS': aLayer.crs(),
@@ -2281,35 +2266,39 @@ class Worker(QThread):
 
         self.progress.emit(80)
         QgsMessageLog.logMessage("Converting Data to ENVI-met model area...", 'ENVI-met', level=Qgis.MessageLevel.Info)
+       
         # finally convert to matrix
-        bTop_str_matrix = np.array2string(bTop_int_array, max_line_width=1000000, separator=",")
+        bTop_str_matrix = np.array2string(bTop_int_array, max_line_width=sys.maxsize, separator=",", threshold=sys.maxsize)
         bTop_str_matrix = bTop_str_matrix.replace(" ", "").replace("[", "").replace("]", "")
-        bBot_str_matrix = np.array2string(bBot_int_array, max_line_width=1000000, separator=",")
+        
+        bBot_str_matrix = np.array2string(bBot_int_array, max_line_width=sys.maxsize, separator=",", threshold=sys.maxsize)
         bBot_str_matrix = bBot_str_matrix.replace(" ", "").replace("[", "").replace("]", "")
-        bNumber_str_matrix = np.array2string(bNumber_int_array, max_line_width=1000000, separator=",")
+        
+        bNumber_str_matrix = np.array2string(bNumber_int_array, max_line_width=sys.maxsize, separator=",", threshold=sys.maxsize)
         bNumber_str_matrix = bNumber_str_matrix.replace(" ", "").replace("[", "").replace("]", "")
-        bFixHeight_str_matrix = np.array2string(bFixHeight_int_array, max_line_width=1000000, separator=",")
+        
+        bFixHeight_str_matrix = np.array2string(bFixHeight_int_array, max_line_width=sys.maxsize, separator=",", threshold=sys.maxsize)
         bFixHeight_str_matrix = bFixHeight_str_matrix.replace(" ", "").replace("[", "").replace("]", "")
 
         # terrain
-        dem_str_matrix = np.array2string(dem_int_array, max_line_width=1000000, separator=",")
+        dem_str_matrix = np.array2string(dem_int_array, max_line_width=sys.maxsize, separator=",", threshold=sys.maxsize)
         dem_str_matrix = dem_str_matrix.replace(" ", "").replace("[", "").replace("]", "")
 
         # plants
-        simplePlant_str_matrix = np.array2string(simplePlant_str_array, max_line_width=1000000, separator=",")
+        simplePlant_str_matrix = np.array2string(simplePlant_str_array, max_line_width=sys.maxsize, separator=",", threshold=sys.maxsize)
         simplePlant_str_matrix = simplePlant_str_matrix.replace(" ", "").replace("[", "").replace("]", "").replace("'","").replace("NULL", "")
 
         # surfaces
-        surf_str_matrix = np.array2string(surf_str_array, max_line_width=1000000, separator=",")
+        surf_str_matrix = np.array2string(surf_str_array, max_line_width=sys.maxsize, separator=",", threshold=sys.maxsize)
         surf_str_matrix = surf_str_matrix.replace(" ", "").replace("[", "").replace("]", "").replace("'", "").replace("NULL", "")
 
         # sources
-        src_str_matrix = np.array2string(src_str_array, max_line_width=1000000, separator=",")
+        src_str_matrix = np.array2string(src_str_array, max_line_width=sys.maxsize, separator=",", threshold=sys.maxsize)
         src_str_matrix = src_str_matrix.replace(" ", "").replace("[", "").replace("]", "").replace("'", "").replace("NULL", "")
 
         self.progress.emit(90)
         QgsMessageLog.logMessage("Writing file...", 'ENVI-met', level=Qgis.MessageLevel.Info)
-        with open(self.filename, 'w') as output_file:
+        with open(self.filename, 'w', encoding='utf-8') as output_file:
             # Print functions
             print("<ENVI-MET_Datafile>", file=output_file)
             print("  <Header>", file=output_file)
@@ -2500,8 +2489,7 @@ class Worker(QThread):
             self.bLayer = self.reprojectLayerToUTM(self.bLayer, False)
 
             # only rotate buildings inside subarea
-            context = dataobjects.createContext()
-            context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)               #QgsFeatureRequest.GeometrySkipInvalid         
+            context = self.get_safe_processing_context()
             aTmpLayer = processing.run("qgis:extractbylocation", 
                                        {"INPUT": self.bLayer,
                                         "PREDICATE": [0],
@@ -3270,8 +3258,7 @@ class Worker(QThread):
         if (comp_layerA is None) or (comp_layerB is None):
             return
 
-        context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)
+        context = self.get_safe_processing_context()
         tstpA = merged.timestepA
         tstpB = merged.timestepB
         targetResA = min(min(tstpA.spacing_x[len(tstpA.spacing_x) // 2], tstpA.spacing_y[len(tstpA.spacing_y) // 2]), 1.00)
@@ -3459,8 +3446,7 @@ class Worker(QThread):
         extent.setYMaximum(tstp.location_georef_y + rows * tstp.spacing_y[len(tstp.spacing_y) // 2])
         crs, qgs_crs = self.getQGIS_crs(tstp)
         # create and define the context for QGIS- and GDAL-functions
-        context = dataobjects.createContext()
-        context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)  # QgsFeatureRequest.GeometrySkipInvalid
+        context = self.get_safe_processing_context()
 
         # Next Step: Create a constant QGIS-layer which has the same extent as the previously defined rectangle
         # initialize it with nodata-values
@@ -3653,6 +3639,7 @@ class Worker(QThread):
             return rasterlayer_final
         else:
             return None
+        
 
     @staticmethod
     def getQGIS_crs(tstp: timestep):
@@ -3662,3 +3649,15 @@ class Worker(QThread):
             crs = pyproj.CRS.from_string(f'+proj=utm +zone={tstp.location_georef_xy_utmzone} +south')
         qgs_crs = QgsCoordinateReferenceSystem(f'EPSG:{crs.to_authority()[1]}')
         return crs, qgs_crs
+    
+
+    def get_safe_processing_context(self):
+        """Creates a processing context compatible with both QGIS 3.4 and QGIS 3.40+"""
+        context = dataobjects.createContext()
+        try:
+            # Modern API (QGIS 3.10, 3.40, QGIS 4)
+            context.setInvalidGeometryCheck(QgsFeatureRequest.InvalidGeometryCheck.GeometryNoCheck)
+        except AttributeError:
+            # Legacy API (QGIS 3.4)
+            context.setInvalidGeometryCheck(QgsFeatureRequest.GeometrySkipInvalid)
+        return context
