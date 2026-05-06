@@ -22,8 +22,16 @@ import pyproj
 from pyproj.database import query_utm_crs_info
 from osgeo import gdal, gdal_array, osr
 import sys
+import os
+
+# Add your plugin directory to the Python path so bundled packages can be found
+plugin_dir = os.path.dirname(os.path.abspath(__file__))
+if plugin_dir not in sys.path:
+    sys.path.insert(0, plugin_dir)
+
+# NOW you can safely import defusedxml
+import defusedxml.ElementTree as ET
 from math import degrees, floor, trunc, sqrt, acos
-import xml.etree.ElementTree as ET
 import requests
 from .ENVImet_DB_loader import *
 from .simx_manager import *
@@ -470,7 +478,7 @@ class Worker(QObject):
     def get_elevation_geonames(self):
         QgsMessageLog.logMessage("Getting Elevation...", 'ENVI-met', level=Qgis.MessageLevel.Info)
         try:
-            response = requests.get('http://api.geonames.org/srtm1XML?lat=' + str(self.lat) + '&lng=' + str(self.lon) + '&username=envi_met')
+            response = requests.get('http://api.geonames.org/srtm1XML?lat=' + str(self.lat) + '&lng=' + str(self.lon) + '&username=envi_met', timeout=20)
             if response.status_code == 200:
                 s = response.text
                 tree = ET.ElementTree(ET.fromstring(s))

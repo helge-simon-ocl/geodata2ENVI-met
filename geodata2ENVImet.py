@@ -1428,10 +1428,14 @@ class Geo2ENVImet:
             #envicore_path = envicore_path.replace('envicore_console.exe', 'core.exe')
             #print(envicore_path)
             #print(f'SIMX-file: {simx_file}" ' f'{envicore_path} {workspace} {my_project_name} {simx_file}')
-            # orig:
-            os.system(
-                f'start "ENVI-met Simulation - started via QGIS.   SIMX-file: {simx_file}" ' f'{envicore_path} {workspace} {my_project_name} {simx_file}')
-
+            # orig: replaced with secure subprocess call
+            if os.name == 'nt': # Check if running on Windows
+                subprocess.Popen(
+                    [envicore_path, workspace, my_project_name, simx_file],
+                    creationflags=subprocess.CREATE_NEW_CONSOLE
+                )
+            else: # Fallback for non-Windows environments
+                subprocess.Popen([envicore_path, workspace, my_project_name, simx_file])      
             # print(f'SIMX-file: {simx_file}" ' f'{envicore_path} {workspace} {my_project_name} {simx_file}')
             # command = f'{envicore_path} {workspace} {my_project_name} {simx_file}'
             # os.system("start /wait cmd /c {command}")
