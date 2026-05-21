@@ -1,6 +1,6 @@
 from logging import info
 
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, QVariant, QThread, pyqtSignal
+from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, QThread, pyqtSignal
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction, QFileDialog, QProgressBar
 from qgis.core import QgsProject, Qgis, QgsField, QgsMapLayerProxyModel, QgsPoint, QgsVectorLayer, QgsRectangle, \
@@ -12,12 +12,13 @@ from .resources import *
 # Import the code for the dialog
 from .geodata2ENVImet_dialog import Geo2ENVImetDialog
 import os.path
+from .Const_defines import FIELD_TYPE_INT, FIELD_TYPE_STRING
 from .ENVImet_DB_loader import *
 from .Worker import *
 from .EDX_EDT import *
 from datetime import datetime
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QMessageBox, QListWidget, QListWidgetItem
+from qgis.PyQt import QtWidgets
+from qgis.PyQt.QtWidgets import QMessageBox, QListWidget, QListWidgetItem
 import os
 import subprocess
 from .Helper_Functions import *
@@ -270,7 +271,7 @@ class Geo2ENVImet:
             self.worker.srcPLayer = self.dlg.cb_srcPLayer.currentLayer()
         self.worker.srcPID_UseCustom = self.dlg.chk_srcPID.isChecked()
         if self.worker.srcPID_UseCustom:
-            self.worker.srcPID = QgsField("notAvail", QVariant.String)
+            self.worker.srcPID = QgsField("notAvail", FIELD_TYPE_STRING)
             self.worker.srcPID_custom = self.dlg.le_srcP.text()
         else:
             self.worker.srcPID = self.dlg.cb_srcPID.currentField()
@@ -283,7 +284,7 @@ class Geo2ENVImet:
             self.worker.srcLLayer = self.dlg.cb_srcLLayer.currentLayer()
         self.worker.srcLID_UseCustom = self.dlg.chk_srcLID.isChecked()
         if self.worker.srcLID_UseCustom:
-            self.worker.srcLID = QgsField("notAvail", QVariant.String)
+            self.worker.srcLID = QgsField("notAvail", FIELD_TYPE_STRING)
             self.worker.srcLID_custom = self.dlg.le_srcL.text()
         else:
             self.worker.srcLID = self.dlg.cb_srcLID.currentField()
@@ -296,7 +297,7 @@ class Geo2ENVImet:
             self.worker.srcALayer = self.dlg.cb_srcALayer.currentLayer()
         self.worker.srcAID_UseCustom = self.dlg.chk_srcAID.isChecked()
         if self.worker.srcAID_UseCustom:
-            self.worker.srcAID = QgsField("notAvail", QVariant.String)
+            self.worker.srcAID = QgsField("notAvail", FIELD_TYPE_STRING)
             self.worker.srcAID_custom = self.dlg.le_srcA.text()
         else:
             self.worker.srcAID = self.dlg.cb_srcAID.currentField()
@@ -310,7 +311,7 @@ class Geo2ENVImet:
             self.worker.recLayer = self.dlg.cb_recLayer.currentLayer()
         self.worker.recID_UseCustom = self.dlg.chk_recID.isChecked()
         if self.worker.recID_UseCustom:
-            self.worker.recID = QgsField("notAvail", QVariant.String)
+            self.worker.recID = QgsField("notAvail", FIELD_TYPE_STRING)
             self.worker.recID_Custom = "R"
         else:
             self.worker.recID = self.dlg.cb_recID.currentField()
@@ -337,14 +338,14 @@ class Geo2ENVImet:
             self.worker.plant3dLayer = self.dlg.cb_plant3dLayer.currentLayer()
         self.worker.plant3dID_UseCustom = self.dlg.chk_plant3d.isChecked()
         if self.worker.plant3dID_UseCustom:
-            self.worker.plant3dID = QgsField("notAvail", QVariant.String)
+            self.worker.plant3dID = QgsField("notAvail", FIELD_TYPE_STRING)
             self.worker.plant3dID_custom = self.dlg.le_plant3d.text()
         else:
             self.worker.plant3dID = self.dlg.cb_plant3dID.currentField()
             self.worker.plant3dID_custom = "notAvail"
         self.worker.plant3dAddOut_disabled = self.dlg.chk_plant3dAddOut.isChecked()
         if self.worker.plant3dAddOut_disabled:
-            self.worker.plant3dAddOut = QgsField("notAvail", QVariant.String)
+            self.worker.plant3dAddOut = QgsField("notAvail", FIELD_TYPE_STRING)
         else:
             self.worker.plant3dAddOut = self.dlg.cb_plant3dAddOut.currentField()
 
@@ -357,7 +358,7 @@ class Geo2ENVImet:
                 self.worker.plant1dLayer = self.dlg.cb_simplePlantLayer.currentLayer()
             self.worker.plant1dID_UseCustom = self.dlg.chk_simplePlantID.isChecked()
             if self.worker.plant1dID_UseCustom:
-                self.worker.plant1dID = QgsField("notAvail", QVariant.String)
+                self.worker.plant1dID = QgsField("notAvail", FIELD_TYPE_STRING)
                 self.worker.plant1dID_custom = self.dlg.le_simplePlant.text()
             else:
                 self.worker.plant1dID = self.dlg.cb_simplePlantID.currentField()
@@ -383,7 +384,7 @@ class Geo2ENVImet:
                 self.worker.surfLayer = self.dlg.cb_surfLayer.currentLayer()
             self.worker.surfID_UseCustom = self.dlg.chk_surf.isChecked()
             if self.worker.surfID_UseCustom:
-                self.worker.surfID = QgsField("notAvail", QVariant.String)
+                self.worker.surfID = QgsField("notAvail", FIELD_TYPE_STRING)
                 self.worker.surfID_custom = self.dlg.le_surf.text()
             else:
                 self.worker.surfID = self.dlg.cb_surfID.currentField()
@@ -423,56 +424,56 @@ class Geo2ENVImet:
             self.worker.bLayer = self.dlg.cb_buildingLayer.currentLayer()
         self.worker.bTop_UseCustom = self.dlg.chk_bTop.isChecked()
         if self.worker.bTop_UseCustom:
-            self.worker.bTop = QgsField("notAvail", QVariant.Int)
+            self.worker.bTop = QgsField("notAvail", FIELD_TYPE_INT)
             self.worker.bTop_custom = self.dlg.se_bTop.value()
         else:
             self.worker.bTop = self.dlg.cb_bTop.currentField()
             self.worker.bTop_custom = C_NODATA_VALUE
         self.worker.bBot_UseCustom = self.dlg.chk_bBot.isChecked()
         if self.worker.bBot_UseCustom:
-            self.worker.bBot = QgsField("notAvail", QVariant.Int)
+            self.worker.bBot = QgsField("notAvail", FIELD_TYPE_INT)
             self.worker.bBot_custom = self.dlg.se_bBot.value()
         else:
             self.worker.bBot = self.dlg.cb_bBot.currentField()
             self.worker.bBot_custom = C_NODATA_VALUE
         self.worker.bName_UseCustom = self.dlg.chk_bName.isChecked()
         if self.worker.bName_UseCustom:
-            self.worker.bName = QgsField("notAvail", QVariant.String)
+            self.worker.bName = QgsField("notAvail", FIELD_TYPE_STRING)
             self.worker.bName_custom = self.dlg.le_bName.text()
         else:
             self.worker.bName = self.dlg.cb_bName.currentField()
             self.worker.bName_custom = ""
         self.worker.bWall_UseCustom = self.dlg.chk_bWall.isChecked()
         if self.worker.bWall_UseCustom:
-            self.worker.bWall = QgsField("notAvail", QVariant.String)
+            self.worker.bWall = QgsField("notAvail", FIELD_TYPE_STRING)
             self.worker.bWall_custom = self.dlg.le_bWall.text()
         else:
             self.worker.bWall = self.dlg.cb_bWall.currentField()
             self.worker.bWall_custom = "000000"
         self.worker.bRoof_UseCustom = self.dlg.chk_bRoof.isChecked()
         if self.worker.bRoof_UseCustom:
-            self.worker.bRoof = QgsField("notAvail", QVariant.String)
+            self.worker.bRoof = QgsField("notAvail", FIELD_TYPE_STRING)
             self.worker.bRoof_custom = self.dlg.le_bRoof.text()
         else:
             self.worker.bRoof = self.dlg.cb_bRoof.currentField()
             self.worker.bRoof_custom = "000000"
         self.worker.bGreenWall_UseCustom = self.dlg.chk_bGreenWall.isChecked()
         if self.worker.bGreenWall_UseCustom:
-            self.worker.bGreenWall = QgsField("notAvail", QVariant.String)
+            self.worker.bGreenWall = QgsField("notAvail", FIELD_TYPE_STRING)
             self.worker.bGreenWall_custom = self.dlg.le_bGreenWall.text()
         else:
             self.worker.bGreenWall = self.dlg.cb_bGreenWall.currentField()
             self.worker.bGreenWall_custom = ""
         self.worker.bGreenRoof_UseCustom = self.dlg.chk_bGreenRoof.isChecked()
         if self.worker.bGreenRoof_UseCustom:
-            self.worker.bGreenRoof = QgsField("notAvail", QVariant.String)
+            self.worker.bGreenRoof = QgsField("notAvail", FIELD_TYPE_STRING)
             self.worker.bGreenRoof_custom = self.dlg.le_bGreenRoof.text()
         else:
             self.worker.bGreenRoof = self.dlg.cb_bGreenRoof.currentField()
             self.worker.bGreenRoof_custom = ""
         self.worker.bBPS_disabled = self.dlg.chk_bBPS.isChecked()
         if self.worker.bBPS_disabled:
-            self.worker.bBPS = QgsField("notAvail", QVariant.String)
+            self.worker.bBPS = QgsField("notAvail", FIELD_TYPE_STRING)
         else:
             self.worker.bBPS = self.dlg.cb_bBPS.currentField()
 
@@ -774,7 +775,7 @@ class Geo2ENVImet:
         dialog.button(QMessageBox.Yes).setText("Yes")
         dialog.button(QMessageBox.No).setText("No")
         dialog.buttonClicked.connect(self.dialog_btn_clicked)
-        dialog.exec_()
+        dialog.exec()
 
     def dialog_btn_clicked(self, btn):
         if btn.text() == 'Yes':
@@ -1016,7 +1017,7 @@ class Geo2ENVImet:
         # show the dialog
         self.dlg.show()
         # Run the dialog event loop
-        self.dlg.exec_()
+        self.dlg.exec()
 
     def setup_user_interface(self):
         # Create the dialog with elements (after translation) and keep reference
@@ -1047,37 +1048,37 @@ class Geo2ENVImet:
     def Select_all_A(self):
         if self.dlg.bt_Select_A.text() == 'Select All':
             for i in range(self.dlg.lw_SeriesA.count()):
-                if self.dlg.lw_SeriesA.item(i).flags() & QtCore.Qt.ItemIsUserCheckable:
-                    self.dlg.lw_SeriesA.item(i).setCheckState(Qt.Checked)
+                if self.dlg.lw_SeriesA.item(i).flags() & QtCore.Qt.ItemFlag.ItemIsUserCheckable:
+                    self.dlg.lw_SeriesA.item(i).setCheckState(Qt.CheckState.Checked)
             self.dlg.bt_Select_A.setText('Clear Selection')
         else:
             for i in range(self.dlg.lw_SeriesA.count()):
-                if self.dlg.lw_SeriesA.item(i).flags() & QtCore.Qt.ItemIsUserCheckable:
-                    self.dlg.lw_SeriesA.item(i).setCheckState(Qt.Unchecked)
+                if self.dlg.lw_SeriesA.item(i).flags() & QtCore.Qt.ItemFlag.ItemIsUserCheckable:
+                    self.dlg.lw_SeriesA.item(i).setCheckState(Qt.CheckState.Unchecked)
             self.dlg.bt_Select_A.setText('Select All')
 
     def Select_all_B(self):
         if self.dlg.bt_Select_B.text() == 'Select All':
             for i in range(self.dlg.lw_SeriesB.count()):
-                if self.dlg.lw_SeriesB.item(i).flags() & QtCore.Qt.ItemIsUserCheckable:
-                    self.dlg.lw_SeriesB.item(i).setCheckState(Qt.Checked)
+                if self.dlg.lw_SeriesB.item(i).flags() & QtCore.Qt.ItemFlag.ItemIsUserCheckable:
+                    self.dlg.lw_SeriesB.item(i).setCheckState(Qt.CheckState.Checked)
             self.dlg.bt_Select_B.setText('Clear Selection')
         else:
             for i in range(self.dlg.lw_SeriesB.count()):
-                if self.dlg.lw_SeriesB.item(i).flags() & QtCore.Qt.ItemIsUserCheckable:
-                    self.dlg.lw_SeriesB.item(i).setCheckState(Qt.Unchecked)
+                if self.dlg.lw_SeriesB.item(i).flags() & QtCore.Qt.ItemFlag.ItemIsUserCheckable:
+                    self.dlg.lw_SeriesB.item(i).setCheckState(Qt.CheckState.Unchecked)
             self.dlg.bt_Select_B.setText('Select All')
 
     def Select_all_Delta(self):
         if self.dlg.bt_Select_Delta.text() == 'Select All':
             for i in range(self.dlg.lw_Delta.count()):
-                if self.dlg.lw_Delta.item(i).flags() & QtCore.Qt.ItemIsUserCheckable:
-                    self.dlg.lw_Delta.item(i).setCheckState(Qt.Checked)
+                if self.dlg.lw_Delta.item(i).flags() & QtCore.Qt.ItemFlag.ItemIsUserCheckable:
+                    self.dlg.lw_Delta.item(i).setCheckState(Qt.CheckState.Checked)
             self.dlg.bt_Select_Delta.setText('Clear Selection')
         else:
             for i in range(self.dlg.lw_Delta.count()):
-                if self.dlg.lw_Delta.item(i).flags() & QtCore.Qt.ItemIsUserCheckable:
-                    self.dlg.lw_Delta.item(i).setCheckState(Qt.Unchecked)
+                if self.dlg.lw_Delta.item(i).flags() & QtCore.Qt.ItemFlag.ItemIsUserCheckable:
+                    self.dlg.lw_Delta.item(i).setCheckState(Qt.CheckState.Unchecked)
             self.dlg.bt_Select_Delta.setText('Select All')
 
     def changeHeightValue(self):
@@ -1131,38 +1132,38 @@ class Geo2ENVImet:
             item = QListWidgetItem()
             if merged_tstp.placeholderA:
                 item.setText(' ')
-                item.setFlags(item.flags() & ~QtCore.Qt.ItemIsUserCheckable)
-                item.setFlags(item.flags() & ~QtCore.Qt.ItemIsSelectable)
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsUserCheckable)
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsSelectable)
             else:
                 item.setText(merged_tstp.strDatetime)
-                item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
-                item.setFlags(item.flags() | QtCore.Qt.ItemIsSelectable)
-                item.setCheckState(QtCore.Qt.Unchecked)
+                item.setFlags(item.flags() | QtCore.Qt.ItemFlag.ItemIsUserCheckable)
+                item.setFlags(item.flags() | QtCore.Qt.ItemFlag.ItemIsSelectable)
+                item.setCheckState(QtCore.Qt.CheckState.Unchecked)
             self.dlg.lw_SeriesA.addItem(item)
 
             # Create entry for listWidgetB
             item = QListWidgetItem()
             if merged_tstp.placeholderB:
                 item.setText(' ')
-                item.setFlags(item.flags() & ~QtCore.Qt.ItemIsUserCheckable)
-                item.setFlags(item.flags() & ~QtCore.Qt.ItemIsSelectable)
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsUserCheckable)
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsSelectable)
             else:
                 item.setText(merged_tstp.strDatetime)
-                item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
-                item.setFlags(item.flags() | QtCore.Qt.ItemIsSelectable)
-                item.setCheckState(QtCore.Qt.Unchecked)
+                item.setFlags(item.flags() | QtCore.Qt.ItemFlag.ItemIsUserCheckable)
+                item.setFlags(item.flags() | QtCore.Qt.ItemFlag.ItemIsSelectable)
+                item.setCheckState(QtCore.Qt.CheckState.Unchecked)
             self.dlg.lw_SeriesB.addItem(item)
 
             # Create entry for Delta-listWidget
             item = QListWidgetItem()
             item.setText(' ')
             if merged_tstp.placeholderA or merged_tstp.placeholderB:
-                item.setFlags(item.flags() & ~QtCore.Qt.ItemIsUserCheckable)
-                item.setFlags(item.flags() & ~QtCore.Qt.ItemIsSelectable)
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsUserCheckable)
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemFlag.ItemIsSelectable)
             else:
-                item.setFlags(item.flags() | QtCore.Qt.ItemIsUserCheckable)
-                item.setFlags(item.flags() | QtCore.Qt.ItemIsSelectable)
-                item.setCheckState(QtCore.Qt.Unchecked)
+                item.setFlags(item.flags() | QtCore.Qt.ItemFlag.ItemIsUserCheckable)
+                item.setFlags(item.flags() | QtCore.Qt.ItemFlag.ItemIsSelectable)
+                item.setCheckState(QtCore.Qt.CheckState.Unchecked)
             self.dlg.lw_Delta.addItem(item)
 
     def add_to_map(self):
@@ -1252,10 +1253,10 @@ class Geo2ENVImet:
 
         # Overview tab
         # make status checkboxes of mandatory sections unclickable
-        self.dlg.cb_generalSettings.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.dlg.cb_generalSettings.setFocusPolicy(Qt.NoFocus)
-        self.dlg.cb_meteo.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.dlg.cb_meteo.setFocusPolicy(Qt.NoFocus)
+        self.dlg.cb_generalSettings.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.dlg.cb_generalSettings.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.dlg.cb_meteo.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.dlg.cb_meteo.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
         self.clear_settings_create_sim_tab()
 
@@ -1537,13 +1538,13 @@ class Geo2ENVImet:
         if (self.dlg.le_inxForSim.text() != '') and not self.dlg.le_inxForSim.text().isspace():
             if (self.dlg.le_fullSimName.text() != '') and not self.dlg.le_fullSimName.text().isspace():
                 self.dlg.lb_generalSettings.setText(self.generalSettings_states[2])
-                self.dlg.cb_generalSettings.setCheckState(Qt.Checked)
+                self.dlg.cb_generalSettings.setCheckState(Qt.CheckState.Checked)
             else:
                 self.dlg.lb_generalSettings.setText(self.generalSettings_states[1])
-                self.dlg.cb_generalSettings.setCheckState(Qt.Unchecked)
+                self.dlg.cb_generalSettings.setCheckState(Qt.CheckState.Unchecked)
         else:
             self.dlg.lb_generalSettings.setText(self.generalSettings_states[0])
-            self.dlg.cb_generalSettings.setCheckState(Qt.Unchecked)
+            self.dlg.cb_generalSettings.setCheckState(Qt.CheckState.Unchecked)
 
     def update_date(self):
         date = self.dlg.calendar_startDateSim.selectedDate()
@@ -1566,21 +1567,21 @@ class Geo2ENVImet:
             # show page for simple forcing
             self.dlg.stackedWidget_3.setCurrentIndex(0)
             self.dlg.lb_meteorology.setText(self.meteoSettings_states[0])
-            self.dlg.cb_meteo.setCheckState(Qt.Checked)
+            self.dlg.cb_meteo.setCheckState(Qt.CheckState.Checked)
         elif self.dlg.rb_fullForcing.isChecked():
             # show page for full forcing
             self.dlg.stackedWidget_3.setCurrentIndex(1)
             if (self.dlg.le_selectedFOX.text() == '') or self.dlg.le_selectedFOX.text().isspace():
                 self.dlg.lb_meteorology.setText(self.meteoSettings_states[1])
-                self.dlg.cb_meteo.setCheckState(Qt.Unchecked)
+                self.dlg.cb_meteo.setCheckState(Qt.CheckState.Unchecked)
             else:
                 self.dlg.lb_meteorology.setText(self.meteoSettings_states[2])
-                self.dlg.cb_meteo.setCheckState(Qt.Checked)
+                self.dlg.cb_meteo.setCheckState(Qt.CheckState.Checked)
         else:
             # show page for open/cyclic
             self.dlg.stackedWidget_3.setCurrentIndex(2)
             self.dlg.lb_meteorology.setText(self.meteoSettings_states[3])
-            self.dlg.cb_meteo.setCheckState(Qt.Checked)
+            self.dlg.cb_meteo.setCheckState(Qt.CheckState.Checked)
 
     @staticmethod
     def switch_enabled_tab(tab):
@@ -1599,17 +1600,17 @@ class Geo2ENVImet:
         # reset edit-fields to default values
         # Overview
         # Mandatory sections state
-        self.dlg.cb_generalSettings.setCheckState(Qt.Unchecked)
-        self.dlg.cb_meteo.setCheckState(Qt.Unchecked)
+        self.dlg.cb_generalSettings.setCheckState(Qt.CheckState.Unchecked)
+        self.dlg.cb_meteo.setCheckState(Qt.CheckState.Unchecked)
         self.dlg.lb_generalSettings.setText(self.generalSettings_states[0])
         self.dlg.lb_meteorology.setText(self.meteoSettings_states[0])
         # optional sections
-        self.dlg.chk_soilSim.setCheckState(Qt.Unchecked)
-        self.dlg.chk_radiationSim.setCheckState(Qt.Unchecked)
-        self.dlg.chk_buildingsSim.setCheckState(Qt.Unchecked)
-        self.dlg.chk_pollutantsSim.setCheckState(Qt.Unchecked)
-        self.dlg.chk_outputSim.setCheckState(Qt.Unchecked)
-        self.dlg.chk_expertSim.setCheckState(Qt.Unchecked)
+        self.dlg.chk_soilSim.setCheckState(Qt.CheckState.Unchecked)
+        self.dlg.chk_radiationSim.setCheckState(Qt.CheckState.Unchecked)
+        self.dlg.chk_buildingsSim.setCheckState(Qt.CheckState.Unchecked)
+        self.dlg.chk_pollutantsSim.setCheckState(Qt.CheckState.Unchecked)
+        self.dlg.chk_outputSim.setCheckState(Qt.CheckState.Unchecked)
+        self.dlg.chk_expertSim.setCheckState(Qt.CheckState.Unchecked)
         self.dlg.tab_Soil.setEnabled(False)
         self.dlg.tab_Radiation.setEnabled(False)
         self.dlg.tab_Buildings_2.setEnabled(False)
@@ -1717,10 +1718,10 @@ class Geo2ENVImet:
         self.dlg.gb_additionalMyPollu.setVisible(False)
 
         # Output
-        self.dlg.cb_outputBldData.setCheckState(Qt.Checked)
-        self.dlg.cb_outputRadData.setCheckState(Qt.Checked)
-        self.dlg.cb_outputSoilData.setCheckState(Qt.Checked)
-        self.dlg.cb_outputVegData.setCheckState(Qt.Checked)
+        self.dlg.cb_outputBldData.setCheckState(Qt.CheckState.Checked)
+        self.dlg.cb_outputRadData.setCheckState(Qt.CheckState.Checked)
+        self.dlg.cb_outputSoilData.setCheckState(Qt.CheckState.Checked)
+        self.dlg.cb_outputVegData.setCheckState(Qt.CheckState.Checked)
         self.dlg.sb_outputIntRecBld.setValue(30)
         self.dlg.sb_outputIntOther.setValue(60)
         self.dlg.rb_writeNetCDFNo.setChecked(True)
@@ -2014,26 +2015,26 @@ class Geo2ENVImet:
 
         # make all summary-checkBoxes read-only. Since there is no read-only property we need to disable mouse-
         # and tab-events for each summary-checkBox
-        self.dlg.cb_summary_gridding.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.dlg.cb_summary_gridding.setFocusPolicy(Qt.NoFocus)
-        self.dlg.cb_summary_buildings.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.dlg.cb_summary_buildings.setFocusPolicy(Qt.NoFocus)
-        self.dlg.cb_summary_dem.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.dlg.cb_summary_dem.setFocusPolicy(Qt.NoFocus)
-        self.dlg.cb_summary_surfaces.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.dlg.cb_summary_surfaces.setFocusPolicy(Qt.NoFocus)
-        self.dlg.cb_summary_asrc.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.dlg.cb_summary_asrc.setFocusPolicy(Qt.NoFocus)
-        self.dlg.cb_summary_lsrc.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.dlg.cb_summary_lsrc.setFocusPolicy(Qt.NoFocus)
-        self.dlg.cb_summary_psrc.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.dlg.cb_summary_psrc.setFocusPolicy(Qt.NoFocus)
-        self.dlg.cb_summary_3dplants.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.dlg.cb_summary_3dplants.setFocusPolicy(Qt.NoFocus)
-        self.dlg.cb_summary_receptors.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.dlg.cb_summary_receptors.setFocusPolicy(Qt.NoFocus)
-        self.dlg.cb_summary_simpleplants.setAttribute(Qt.WA_TransparentForMouseEvents)
-        self.dlg.cb_summary_simpleplants.setFocusPolicy(Qt.NoFocus)
+        self.dlg.cb_summary_gridding.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.dlg.cb_summary_gridding.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.dlg.cb_summary_buildings.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.dlg.cb_summary_buildings.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.dlg.cb_summary_dem.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.dlg.cb_summary_dem.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.dlg.cb_summary_surfaces.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.dlg.cb_summary_surfaces.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.dlg.cb_summary_asrc.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.dlg.cb_summary_asrc.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.dlg.cb_summary_lsrc.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.dlg.cb_summary_lsrc.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.dlg.cb_summary_psrc.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.dlg.cb_summary_psrc.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.dlg.cb_summary_3dplants.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.dlg.cb_summary_3dplants.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.dlg.cb_summary_receptors.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.dlg.cb_summary_receptors.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.dlg.cb_summary_simpleplants.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        self.dlg.cb_summary_simpleplants.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
     def select_surface_source(self):
         if self.dlg.rb_surfVector.isChecked():
@@ -2059,10 +2060,10 @@ class Geo2ENVImet:
         if summary_checkBox == self.dlg.cb_summary_gridding:
             if self.dlg.cb_subArea.currentLayer() is None:
                 # unchecked = 0
-                summary_checkBox.setCheckState(Qt.Unchecked)
+                summary_checkBox.setCheckState(Qt.CheckState.Unchecked)
             else:
                 # checked = 2
-                summary_checkBox.setCheckState(Qt.Checked)
+                summary_checkBox.setCheckState(Qt.CheckState.Checked)
         elif summary_checkBox == self.dlg.cb_summary_buildings:
             if (self.dlg.cb_buildingLayer.currentLayer() is None) \
                     or ((self.dlg.cb_bTop.currentField() == "") and not (self.dlg.chk_bTop.isChecked())) \
@@ -2074,10 +2075,10 @@ class Geo2ENVImet:
                     or ((self.dlg.cb_bName.currentField() == "") and not (self.dlg.chk_bName.isChecked())) \
                     or ((self.dlg.cb_bBPS.currentField() == "") and not (self.dlg.chk_bBPS.isChecked())):
                 # unchecked = 0
-                summary_checkBox.setCheckState(Qt.Unchecked)
+                summary_checkBox.setCheckState(Qt.CheckState.Unchecked)
             else:
                 # checked = 2
-                summary_checkBox.setCheckState(Qt.Checked)
+                summary_checkBox.setCheckState(Qt.CheckState.Checked)
         elif summary_checkBox == self.dlg.cb_summary_surfaces:
             if (self.dlg.rb_surfRaster.isChecked()
                 and (self.dlg.cb_MapLayerRasterSurf.currentLayer() is None)) \
@@ -2085,10 +2086,10 @@ class Geo2ENVImet:
                         and (self.dlg.cb_surfLayer.currentLayer() is None
                              or ((self.dlg.cb_surfID.currentField() == "") and not (self.dlg.chk_surf.isChecked())))):
                 # unchecked = 0
-                summary_checkBox.setCheckState(Qt.Unchecked)
+                summary_checkBox.setCheckState(Qt.CheckState.Unchecked)
             else:
                 # checked = 2
-                summary_checkBox.setCheckState(Qt.Checked)
+                summary_checkBox.setCheckState(Qt.CheckState.Checked)
         elif summary_checkBox == self.dlg.cb_summary_simpleplants:
             if (self.dlg.rb_simplePlantsRaster.isChecked()
                 and self.dlg.cb_MapLayerRasterSP.currentLayer() is None) \
@@ -2097,56 +2098,56 @@ class Geo2ENVImet:
                              or (self.dlg.cb_simplePlantID.currentField() == "") and not (
                             self.dlg.chk_simplePlantID.isChecked()))):
                 # unchecked = 0
-                summary_checkBox.setCheckState(Qt.Unchecked)
+                summary_checkBox.setCheckState(Qt.CheckState.Unchecked)
             else:
                 # checked = 2
-                summary_checkBox.setCheckState(Qt.Checked)
+                summary_checkBox.setCheckState(Qt.CheckState.Checked)
         elif summary_checkBox == self.dlg.cb_summary_asrc:
             if (self.dlg.cb_srcALayer.currentLayer() is None) \
                     or ((self.dlg.cb_srcAID.currentField() == "") and not (self.dlg.chk_srcAID.isChecked())):
                 # unchecked = 0
-                summary_checkBox.setCheckState(Qt.Unchecked)
+                summary_checkBox.setCheckState(Qt.CheckState.Unchecked)
             else:
                 # checked = 2
-                summary_checkBox.setCheckState(Qt.Checked)
+                summary_checkBox.setCheckState(Qt.CheckState.Checked)
         elif summary_checkBox == self.dlg.cb_summary_lsrc:
             if (self.dlg.cb_srcLLayer.currentLayer() is None) \
                     or ((self.dlg.cb_srcLID.currentField() == "") and not (self.dlg.chk_srcLID.isChecked())):
                 # unchecked = 0
-                summary_checkBox.setCheckState(Qt.Unchecked)
+                summary_checkBox.setCheckState(Qt.CheckState.Unchecked)
             else:
                 # checked = 2
-                summary_checkBox.setCheckState(Qt.Checked)
+                summary_checkBox.setCheckState(Qt.CheckState.Checked)
         elif summary_checkBox == self.dlg.cb_summary_psrc:
             if (self.dlg.cb_srcPLayer.currentLayer() is None) \
                     or ((self.dlg.cb_srcPID.currentField() == "") and not (self.dlg.chk_srcPID.isChecked())):
                 # unchecked = 0
-                summary_checkBox.setCheckState(Qt.Unchecked)
+                summary_checkBox.setCheckState(Qt.CheckState.Unchecked)
             else:
                 # checked = 2
-                summary_checkBox.setCheckState(Qt.Checked)
+                summary_checkBox.setCheckState(Qt.CheckState.Checked)
         elif summary_checkBox == self.dlg.cb_summary_3dplants:
             if (self.dlg.cb_plant3dLayer.currentLayer() is None) \
                     or ((self.dlg.cb_plant3dID.currentField() == "") and not (self.dlg.chk_plant3d.isChecked())) \
                     or (
                     (self.dlg.cb_plant3dAddOut.currentField() == "") and not (self.dlg.chk_plant3dAddOut.isChecked())):
                 # unchecked = 0
-                summary_checkBox.setCheckState(Qt.Unchecked)
+                summary_checkBox.setCheckState(Qt.CheckState.Unchecked)
             else:
                 # checked = 2
-                summary_checkBox.setCheckState(Qt.Checked)
+                summary_checkBox.setCheckState(Qt.CheckState.Checked)
         elif summary_checkBox == self.dlg.cb_summary_dem:
             if self.dlg.cb_demLayer.currentLayer() is None:
                 # unchecked = 0
-                summary_checkBox.setCheckState(Qt.Unchecked)
+                summary_checkBox.setCheckState(Qt.CheckState.Unchecked)
             else:
                 # checked = 2
-                summary_checkBox.setCheckState(Qt.Checked)
+                summary_checkBox.setCheckState(Qt.CheckState.Checked)
         elif summary_checkBox == self.dlg.cb_summary_receptors:
             if (self.dlg.cb_recLayer.currentLayer() is None) \
                     or ((self.dlg.cb_recID.currentField() == "") and not (self.dlg.chk_recID.isChecked())):
                 # unchecked = 0
-                summary_checkBox.setCheckState(Qt.Unchecked)
+                summary_checkBox.setCheckState(Qt.CheckState.Unchecked)
             else:
                 # checked = 2
-                summary_checkBox.setCheckState(Qt.Checked)
+                summary_checkBox.setCheckState(Qt.CheckState.Checked)

@@ -1,45 +1,34 @@
 import math
-import random
+import sys
+import json
+import time
+from math import degrees, floor, trunc, sqrt, acos
 
-from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, QVariant, QThread, QObject, pyqtSignal
+import numpy as np
+import requests
+import pyproj
+from pyproj.database import query_utm_crs_info
+from osgeo import gdal, osr
+
+from qgis.PyQt.QtCore import Qt, QObject, QDate, QTime, pyqtSignal
 from qgis.core import QgsProject, Qgis, QgsField, QgsMapLayerProxyModel, QgsPoint, QgsPointXY, QgsVectorLayer, QgsRectangle, \
     QgsFeatureRequest, QgsFieldProxyModel, QgsMessageLog, QgsRasterLayer, QgsMapSettings, QgsPolygon, QgsGeometry, QgsFeature, \
     QgsCoordinateReferenceSystem, QgsRasterFileWriter, QgsRasterPipe, QgsRaster, QgsRasterBlock, QgsSingleBandGrayRenderer, \
     QgsContrastEnhancement, QgsRasterBandStats, QgsProcessing, QgsVectorFileWriter, QgsProviderRegistry, QgsGeometryUtils, \
     QgsRasterShader, QgsColorRampShader, QgsSingleBandPseudoColorRenderer, QgsStyle, QgsRasterRendererUtils, QgsSymbolLayer, \
     QgsMarkerSymbolLayer, QgsFontMarkerSymbolLayer, QgsProperty, QgsGraduatedSymbolRenderer, QgsVectorFieldSymbolLayer
-from qgis.PyQt.QtCore import *
-# Import necessary QGIS classes
-from qgis.PyQt.QtCore import QPointF, QSizeF, QRectF, QSize
-from qgis.PyQt.QtGui import QColor, QImage, QImageWriter, QPainter
-# Initialize Qt resources from file resources.py
-from .resources import *
-# Import the code for the dialog
-from .geodata2ENVImet_dialog import Geo2ENVImetDialog
 import processing
 from processing.tools import dataobjects
-import pyproj
-from pyproj.database import query_utm_crs_info
-from osgeo import gdal, gdal_array, osr
-import sys
-import os
 
-import json
-from math import degrees, floor, trunc, sqrt, acos
-import requests
+from .resources import *
+from .geodata2ENVImet_dialog import Geo2ENVImetDialog
 from .ENVImet_DB_loader import *
 from .simx_manager import *
 from .EDX_EDT import *
-import numpy as np
 from .NetCDF import *
 from .Helper_Functions import *
 from .Dataseries_handler import *
 from .Const_defines import *
-
-#import utm
-
-# performance testing
-import time
 
 
 class Building:
@@ -109,14 +98,14 @@ class Worker(QObject):
 
         self.bLayer = QgsVectorLayer("Polygon", "notAvail", "memory")
         self.bLayer_rot = QgsVectorLayer("Polygon", "notAvail", "memory")
-        self.bTop = QgsField("notAvail", QVariant.Int)
-        self.bBot = QgsField("notAvail", QVariant.Int)
-        self.bName = QgsField("notAvail", QVariant.String)
-        self.bWall = QgsField("notAvail", QVariant.String)
-        self.bRoof = QgsField("notAvail", QVariant.String)
-        self.bGreenWall = QgsField("notAvail", QVariant.String)
-        self.bGreenRoof = QgsField("notAvail", QVariant.String)
-        self.bBPS = QgsField("notAvail", QVariant.String)
+        self.bTop = QgsField("notAvail", FIELD_TYPE_INT)
+        self.bBot = QgsField("notAvail", FIELD_TYPE_INT)
+        self.bName = QgsField("notAvail", FIELD_TYPE_STRING)
+        self.bWall = QgsField("notAvail", FIELD_TYPE_STRING)
+        self.bRoof = QgsField("notAvail", FIELD_TYPE_STRING)
+        self.bGreenWall = QgsField("notAvail", FIELD_TYPE_STRING)
+        self.bGreenRoof = QgsField("notAvail", FIELD_TYPE_STRING)
+        self.bBPS = QgsField("notAvail", FIELD_TYPE_STRING)
         # custom fields
         self.bTop_custom = C_NODATA_VALUE
         self.bBot_custom = C_NODATA_VALUE
@@ -138,7 +127,7 @@ class Worker(QObject):
 
         self.surfLayer = QgsVectorLayer("Polygon", "notAvail", "memory")
         self.surfLayer_rot = QgsVectorLayer("Polygon", "notAvail", "memory")
-        self.surfID = QgsField("notAvail", QVariant.String)
+        self.surfID = QgsField("notAvail", FIELD_TYPE_STRING)
         self.surfID_custom = "notAvail"
         self.surfID_UseCustom = False
 
@@ -151,7 +140,7 @@ class Worker(QObject):
 
         self.plant1dLayer = QgsVectorLayer("Polygon", "notAvail", "memory")
         self.plant1dLayer_rot = QgsVectorLayer("Polygon", "notAvail", "memory")
-        self.plant1dID = QgsField("notAvail", QVariant.String)
+        self.plant1dID = QgsField("notAvail", FIELD_TYPE_STRING)
         self.plant1dID_custom = "notAvail"
         self.plant1dID_UseCustom = False
 
@@ -162,33 +151,33 @@ class Worker(QObject):
 
         self.plant3dLayer = QgsVectorLayer("Point", "notAvail", "memory")
         self.plant3dLayer_rot = QgsVectorLayer("Point", "notAvail", "memory")
-        self.plant3dID = QgsField("notAvail", QVariant.String)
-        self.plant3dAddOut = QgsField("notAvail", QVariant.String)
+        self.plant3dID = QgsField("notAvail", FIELD_TYPE_STRING)
+        self.plant3dAddOut = QgsField("notAvail", FIELD_TYPE_STRING)
         self.plant3dAddOut_disabled = False
         self.plant3dID_custom = "notAvail"
         self.plant3dID_UseCustom = False
 
         self.recLayer = QgsVectorLayer("Point", "notAvail", "memory")
         self.recLayer_rot = QgsVectorLayer("Point", "notAvail", "memory")
-        self.recID = QgsField("notAvail", QVariant.String)
+        self.recID = QgsField("notAvail", FIELD_TYPE_STRING)
         self.recID_custom = "notAvail"
         self.recID_UseCustom = False
 
         self.srcPLayer = QgsVectorLayer("Point", "notAvail", "memory")
         self.srcPLayer_rot = QgsVectorLayer("Point", "notAvail", "memory")
-        self.srcPID = QgsField("notAvail", QVariant.String)
+        self.srcPID = QgsField("notAvail", FIELD_TYPE_STRING)
         self.srcPID_custom = "notAvail"
         self.srcPID_UseCustom = False
 
         self.srcLLayer = QgsVectorLayer("Line", "notAvail", "memory")
         self.srcLLayer_rot = QgsVectorLayer("Line", "notAvail", "memory")
-        self.srcLID = QgsField("notAvail", QVariant.String)
+        self.srcLID = QgsField("notAvail", FIELD_TYPE_STRING)
         self.srcLID_custom = "notAvail"
         self.srcLID_UseCustom = False
 
         self.srcALayer = QgsVectorLayer("Polygon", "notAvail", "memory")
         self.srcALayer_rot = QgsVectorLayer("Polygon", "notAvail", "memory")
-        self.srcAID = QgsField("notAvail", QVariant.String)
+        self.srcAID = QgsField("notAvail", FIELD_TYPE_STRING)
         self.srcAID_custom = "notAvail"
         self.srcAID_UseCustom = False
 
@@ -452,7 +441,7 @@ class Worker(QObject):
                 return str(round(self.lon / 15))
             else:
                 return str(round(self.lon / 15))
-        except:
+        except Exception:
             return str(round(self.lon / 15))
 
     def get_elevation_geonames(self):
@@ -468,7 +457,7 @@ class Worker(QObject):
                 return self.refHeightDEM
             else:
                 return self.refHeightDEM
-        except:
+        except Exception:
             return self.refHeightDEM
 
     def get_UTM_zone(self, lon: int, lat: int):
@@ -525,7 +514,7 @@ class Worker(QObject):
         # start editing
         self.bLayer_rot.startEditing()
         bNumber_int = 'bNum_int'
-        self.bLayer_rot.addAttribute(QgsField(bNumber_int, QVariant.Int))
+        self.bLayer_rot.addAttribute(QgsField(bNumber_int, FIELD_TYPE_INT))
         self.bLayer_rot.commitChanges()
 
         self.bLayer_rot = self.reorgFID(self.bLayer_rot)
@@ -688,7 +677,7 @@ class Worker(QObject):
         # this layer will store the integer values we just mapped in the dictionary
         self.surfLayer_rot.startEditing()
         ID_int = 'ID_int'
-        self.surfLayer_rot.addAttribute(QgsField(ID_int, QVariant.Int))
+        self.surfLayer_rot.addAttribute(QgsField(ID_int, FIELD_TYPE_INT))
 
         # write the corresponding integer values in each row, depending on the EnviID used in that row
         for f in self.surfLayer_rot.getFeatures():
@@ -1125,94 +1114,33 @@ class Worker(QObject):
     def rasterize_gdal(self, input_layer, field, get_strArray: bool = False, burn_val: bool = False,
                        init_val=None, no_data_val: int = 0):
         context = self.get_safe_processing_context()
-        if burn_val:
-            if init_val is None:
-                rlayer = processing.run("gdal:rasterize",
-                                        {"INPUT": input_layer,
-                                         "BURN": field,
-                                         "UNITS": 1,
-                                         "WIDTH": self.dx,
-                                         "HEIGHT": self.dy,
-                                         "EXTENT": self.subAreaExtent,
-                                         "NODATA": no_data_val,
-                                         "DATA_TYPE": 4,
-                                         "INVERT": False,
-                                         "OUTPUT": 'TEMPORARY_OUTPUT'},
-                                        context=context)
-                rlayerFN = rlayer['OUTPUT']
-            else:
-                rlayer = processing.run("gdal:rasterize",
-                                        {"INPUT": input_layer,
-                                         "BURN": field,
-                                         "UNITS": 1,
-                                         "WIDTH": self.dx,
-                                         "HEIGHT": self.dy,
-                                         "EXTENT": self.subAreaExtent,
-                                         "NODATA": no_data_val,
-                                         "INIT": init_val,
-                                         "DATA_TYPE": 4,
-                                         "INVERT": False,
-                                         "OUTPUT": 'TEMPORARY_OUTPUT'},
-                                        context=context)
-                rlayerFN = rlayer['OUTPUT']
-        else:
-            if init_val is None:
-                rlayer = processing.run("gdal:rasterize",
-                                        {"INPUT": input_layer,
-                                         "FIELD": field,
-                                         "UNITS": 1,
-                                         "WIDTH": self.dx,
-                                         "HEIGHT": self.dy,
-                                         "EXTENT": self.subAreaExtent,
-                                         "NODATA": no_data_val,
-                                         "DATA_TYPE": 4,
-                                         "INVERT": False,
-                                         "OUTPUT": 'TEMPORARY_OUTPUT'},
-                                        context=context)
-                rlayerFN = rlayer['OUTPUT']
-                #print(rlayerFN)
-            else:
-                rlayer = processing.run("gdal:rasterize",
-                                        {"INPUT": input_layer,
-                                         "FIELD": field,
-                                         "UNITS": 1,
-                                         "WIDTH": self.dx,
-                                         "HEIGHT": self.dy,
-                                         "EXTENT": self.subAreaExtent,
-                                         "NODATA": no_data_val,
-                                         "INIT": init_val,
-                                         "DATA_TYPE": 4,
-                                         "INVERT": False,
-                                         "OUTPUT": 'TEMPORARY_OUTPUT'},
-                                        context=context)
-                rlayerFN = rlayer['OUTPUT']
-                #print(rlayerFN)
-        #self.addRasterLayer(rlayerFN,"surf_debug")
-        # Open the current layer
+        params = {
+            "INPUT": input_layer,
+            ("BURN" if burn_val else "FIELD"): field,
+            "UNITS": 1,
+            "WIDTH": self.dx,
+            "HEIGHT": self.dy,
+            "EXTENT": self.subAreaExtent,
+            "NODATA": no_data_val,
+            "DATA_TYPE": 4,
+            "INVERT": False,
+            "OUTPUT": 'TEMPORARY_OUTPUT',
+        }
+        if init_val is not None:
+            params["INIT"] = init_val
+        rlayerFN = processing.run("gdal:rasterize", params, context=context)['OUTPUT']
+
         grid1 = gdal.Open(rlayerFN)
-
-        # Get the first raster band of the layer
         grid1_band = grid1.GetRasterBand(1)
+        grid1_int_array = grid1_band.ReadAsArray().astype(int)
+        grid1_band.FlushCache()
 
-        # Read the raster band as an numpy array
-        grid1_array = grid1_band.ReadAsArray()
-
-        # Change the data type of array from floating numbers to integers
-        grid1_int_array = grid1_array.astype(int)
-
-        # fill grids cnt
         self.II = grid1_int_array.shape[1]
         self.JJ = grid1_int_array.shape[0]
 
         if get_strArray:
-            grid1_str_array = grid1_int_array.astype(str)
-            # Remove the whole cache
-            grid1_band.FlushCache()
-            return grid1_str_array, grid1_int_array
-        else:
-            # Remove the whole cache
-            grid1_band.FlushCache()
-            return grid1_int_array
+            return grid1_int_array.astype(str), grid1_int_array
+        return grid1_int_array
 
     def raster_simple_plants_from_vector(self):
         if self.plant1dLayer.name() == "notAvail":
@@ -1255,7 +1183,7 @@ class Worker(QObject):
             # this layer will store the integer values we just mapped in the dictionary
             self.plant1dLayer_rot.startEditing()
             ID_int = 'ID_int'
-            self.plant1dLayer_rot.addAttribute(QgsField(ID_int, QVariant.Int))
+            self.plant1dLayer_rot.addAttribute(QgsField(ID_int, FIELD_TYPE_INT))
 
             # write the corresponding integer values in each row, depending on the EnviID used in that row
             for f in self.plant1dLayer_rot.getFeatures():
@@ -1329,7 +1257,7 @@ class Worker(QObject):
         else:
             self.plant3dLayer_rot.startEditing()
             ID_int = 'ID_int'
-            self.plant3dLayer_rot.addAttribute(QgsField(ID_int, QVariant.Int))
+            self.plant3dLayer_rot.addAttribute(QgsField(ID_int, FIELD_TYPE_INT))
 
             # add a unique number to each tree
             plantID_idx = 1
@@ -1524,7 +1452,7 @@ class Worker(QObject):
             # start editing
             self.srcPLayer_rot.startEditing()
             ID_int = 'ID_int'
-            self.srcPLayer_rot.addAttribute(QgsField(ID_int, QVariant.Int))
+            self.srcPLayer_rot.addAttribute(QgsField(ID_int, FIELD_TYPE_INT))
 
             # write the corresponding integer values in each row, depending on the EnviID used in that row
             for f in self.srcPLayer_rot.getFeatures():
@@ -1603,7 +1531,7 @@ class Worker(QObject):
             # start editing
             self.srcLLayer_rot.startEditing()
             ID_int = 'ID_int'
-            self.srcLLayer_rot.addAttribute(QgsField(ID_int, QVariant.Int))
+            self.srcLLayer_rot.addAttribute(QgsField(ID_int, FIELD_TYPE_INT))
 
             # write the corresponding integer values in each row, depending on the EnviID used in that row
             for f in self.srcLLayer_rot.getFeatures():
@@ -1682,7 +1610,7 @@ class Worker(QObject):
 
             self.srcALayer_rot.startEditing()
             ID_int = 'ID_int'
-            self.srcALayer_rot.addAttribute(QgsField(ID_int, QVariant.Int))
+            self.srcALayer_rot.addAttribute(QgsField(ID_int, FIELD_TYPE_INT))
 
             # write the corresponding integer values in each row, depending on the EnviID used in that row
             for f in self.srcALayer_rot.getFeatures():
@@ -1767,7 +1695,7 @@ class Worker(QObject):
                         i += 1
             self.recLayer_rot.startEditing()
             ID_int = 'ID_int'
-            self.recLayer_rot.addAttribute(QgsField(ID_int, QVariant.Int))
+            self.recLayer_rot.addAttribute(QgsField(ID_int, FIELD_TYPE_INT))
 
             for f in self.recLayer_rot.getFeatures():
                 # get enviID in string
@@ -2090,64 +2018,45 @@ class Worker(QObject):
                         bTop_int_array[i, j] = 0
                         bBot_int_array[i, j] = 0
                         bNumber_int_array[i, j] = 0
-            # now update bList
+            # now update bList — drop buildings that no longer have any cells
+            remaining_buildings = set(np.unique(bNumber_int_array).tolist())
             for bRem in bRemSet:
-                bCanBeRemoved = True
-                for i in range(bNumber_int_array.shape[0]):
-                    for j in range(bNumber_int_array.shape[1]):
-                        if bNumber_int_array[i, j] == bRem:
-                            bCanBeRemoved = False
-                if bCanBeRemoved:
-                    if self.s_buildingDict.get(bRem) is not None:
-                        del self.s_buildingDict[bRem]
+                if bRem not in remaining_buildings:
+                    self.s_buildingDict.pop(bRem, None)
 
         # check if buildings should be leveled with DEM
         QgsMessageLog.logMessage("Preparing Buildings in DEM...", 'ENVI-met', level=Qgis.MessageLevel.Info)
         if not (self.dEMLayer.name() == "notAvail") and not (self.dEMBand <= 0) and self.bLeveled:
-            # create a new temp empty list of buildings that also holds a list of cells
-            bListDEM = []
-            # first get all cells that belong to a building and put them in a list
-            for i in range(bNumber_int_array.shape[0]):
-                for j in range(bNumber_int_array.shape[1]):
-                    newBuild = True
-                    if bNumber_int_array[i, j] > 0:
-                        for key in bListDEM:
-                            if key.bNumber == bNumber_int_array[i, j]:
-                                cell = Cell(i, j, 0)
-                                key.cellList.append(cell)
-                                newBuild = False
-                                break
-                        if newBuild:
-                            bLevel = BLevel(bNumber_int_array[i, j])
-                            cell = Cell(i, j, 0)
-                            bLevel.cellList.append(cell)
-                            bListDEM.append(bLevel)
+            # group all occupied cells by building number in a single pass
+            bListDEM_dict = {}
+            i_idx, j_idx = np.where(bNumber_int_array > 0)
+            for i, j in zip(i_idx, j_idx):
+                bnum = int(bNumber_int_array[i, j])
+                level = bListDEM_dict.get(bnum)
+                if level is None:
+                    level = BLevel(bnum)
+                    bListDEM_dict[bnum] = level
+                level.cellList.append(Cell(int(i), int(j), 0))
 
-            # now go through the list and find the lowest terrain below a building
-            for key in bListDEM:
-                minDEM = 99999999
-                for c in key.cellList:
-                    if dem_int_array[c.i, c.j] < minDEM:
-                        minDEM = dem_int_array[c.i, c.j]
-                # now check if a terrain is higher and by how much, then, reduce the terrain by that amount
-                for c in key.cellList:
-                    hCorr = dem_int_array[c.i, c.j] - minDEM
-                    if hCorr > 0:
-                        dem_int_array[c.i, c.j] = dem_int_array[c.i, c.j] - hCorr
+            # flatten the terrain under each building down to its minimum elevation
+            for level in bListDEM_dict.values():
+                if not level.cellList:
+                    continue
+                cells_i = np.fromiter((c.i for c in level.cellList), dtype=int, count=len(level.cellList))
+                cells_j = np.fromiter((c.j for c in level.cellList), dtype=int, count=len(level.cellList))
+                dem_int_array[cells_i, cells_j] = dem_int_array[cells_i, cells_j].min()
 
         # check if vegetation on buildings should be removed
         QgsMessageLog.logMessage("Check if Vegetation on Buildings should be removed...", 'ENVI-met', level=Qgis.MessageLevel.Info)
         if self.removeVegBuild:
-            for i in range(bNumber_int_array.shape[0]):
-                for j in range(bNumber_int_array.shape[1]):
-                    if bNumber_int_array[i, j] > 0:
-                        # remove simple plants
-                        if simplePlant_str_array[i, j] != "":
-                            simplePlant_str_array[i, j] = ""
-                        # remove trees
-                        for tree in self.s_treeList:
-                            if (tree.get("rootcell_i") == j) and (tree.get("rootcell_j") == self.JJ - i):
-                                self.s_treeList.remove(tree)
+            building_mask = bNumber_int_array > 0
+            simplePlant_str_array[building_mask] = ""
+            i_idx, j_idx = np.where(building_mask)
+            blocked_cells = {(int(j), int(self.JJ - i)) for i, j in zip(i_idx, j_idx)}
+            self.s_treeList = [
+                t for t in self.s_treeList
+                if (t.get("rootcell_i"), t.get("rootcell_j")) not in blocked_cells
+            ]
 
         # check buildings need to be removed e.g. building height = 0 or < 0
         QgsMessageLog.logMessage("Check integrity of Buildings...", 'ENVI-met', level=Qgis.MessageLevel.Info)
@@ -2161,16 +2070,11 @@ class Worker(QObject):
                     bRemSet02.add(bNumber_int_array[i, j])
                     bNumber_int_array[i, j] = 0
 
-        # now update bList
+        # now update bList — drop buildings that no longer have any cells
+        remaining_buildings = set(np.unique(bNumber_int_array).tolist())
         for bRem02 in bRemSet02:
-            bCanBeRemoved = True
-            for i in range(bNumber_int_array.shape[0]):
-                for j in range(bNumber_int_array.shape[1]):
-                    if bNumber_int_array[i, j] == bRem02:
-                        bCanBeRemoved = False
-            if bCanBeRemoved:
-                if self.s_buildingDict.get(bRem02) is not None:
-                    del self.s_buildingDict[bRem02]                           
+            if bRem02 not in remaining_buildings:
+                self.s_buildingDict.pop(bRem02, None)
 
         self.progress.emit(80)
         QgsMessageLog.logMessage("Converting Data to ENVI-met model area...", 'ENVI-met', level=Qgis.MessageLevel.Info)

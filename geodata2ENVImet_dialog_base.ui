@@ -31,7 +31,7 @@
         <x>0</x>
         <y>0</y>
         <width>978</width>
-        <height>942</height>
+        <height>990</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -91,7 +91,7 @@
               <bool>false</bool>
              </property>
              <property name="styleSheet">
-              <string notr="true">background-color: rgb(252, 252, 252);</string>
+              <string notr="true"/>
              </property>
              <property name="frameShape">
               <enum>QFrame::NoFrame</enum>
