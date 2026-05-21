@@ -24,13 +24,7 @@ from osgeo import gdal, gdal_array, osr
 import sys
 import os
 
-# Add your plugin directory to the Python path so bundled packages can be found
-plugin_dir = os.path.dirname(os.path.abspath(__file__))
-if plugin_dir not in sys.path:
-    sys.path.insert(0, plugin_dir)
-
-# NOW you can safely import defusedxml
-import defusedxml.ElementTree as ET
+import json
 from math import degrees, floor, trunc, sqrt, acos
 import requests
 from .ENVImet_DB_loader import *
@@ -448,48 +442,30 @@ class Worker(QObject):
     def get_time_zone_geonames(self):
         QgsMessageLog.logMessage("Getting Timezone...", 'ENVI-met', level=Qgis.MessageLevel.Info)
         try:
-            url = 'http://api.geonames.org/timezone?lat=' + str(self.lat) + '&lng=' \
+            url = 'http://api.geonames.org/timezoneJSON?lat=' + str(self.lat) + '&lng=' \
                   + str(self.lon) + '&username=envi_met'
             response = requests.get(url, timeout=20)
             if response.status_code == 200:
-                s = response.text
-                dataFound = False
-                if "error" not in s:
-                    tree = ET.ElementTree(ET.fromstring(s))
-                    root = tree.getroot()
-                    for tz in root:
-                        for data in tz:
-                            if data.tag == "gmtOffset":
-                                dataFound = True
-                                return data.text
-                    if not dataFound:
-                        s1 = round(self.lon / 15)
-                        return str(s1)
-                else:
-                    s1 = round(self.lon / 15)
-                    return str(s1)
+                data = json.loads(response.text)
+                if "status" not in data and "gmtOffset" in data:
+                    return str(data["gmtOffset"])
+                return str(round(self.lon / 15))
             else:
-                s = round(self.lon / 15)
-                return str(s)
+                return str(round(self.lon / 15))
         except:
-            s = round(self.lon / 15)
-            return str(s)
+            return str(round(self.lon / 15))
 
     def get_elevation_geonames(self):
         QgsMessageLog.logMessage("Getting Elevation...", 'ENVI-met', level=Qgis.MessageLevel.Info)
         try:
-            response = requests.get('http://api.geonames.org/srtm1XML?lat=' + str(self.lat) + '&lng=' + str(self.lon) + '&username=envi_met', timeout=20)
+            response = requests.get('http://api.geonames.org/srtm1JSON?lat=' + str(self.lat) + '&lng=' + str(self.lon) + '&username=envi_met', timeout=20)
             if response.status_code == 200:
-                s = response.text
-                tree = ET.ElementTree(ET.fromstring(s))
-                root = tree.getroot()
-                for data in root:
-                    if data.tag == "srtm1":
-                        elev = int(data.text)
-                        if elev >= 0:
-                            return elev
-                        else:
-                            return self.refHeightDEM
+                data = json.loads(response.text)
+                if "srtm1" in data:
+                    elev = int(data["srtm1"])
+                    if elev >= 0:
+                        return elev
+                return self.refHeightDEM
             else:
                 return self.refHeightDEM
         except:
