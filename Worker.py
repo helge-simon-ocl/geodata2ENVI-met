@@ -1173,6 +1173,7 @@ class Worker(QObject):
             for f in spFeats:
                 plantID_str = f[self.plant1dID]
                 if plantID_str and not plantID_str.isspace():
+                    plantID_str = plantID_str.strip()
                     # if the plantID does not exist in the dict yet, add it
                     if aTmpDict.get(plantID_str) is None:
                         # plantID_str is the key, i the value
@@ -1189,6 +1190,8 @@ class Worker(QObject):
             for f in self.plant1dLayer_rot.getFeatures():
                 # get enviID in string
                 plantID_str = f[self.plant1dID]
+                if plantID_str and not plantID_str.isspace():
+                    plantID_str = plantID_str.strip()
                 plantID_int = -1
                 # get integer value for this enviID (surfID_str)
                 value = aTmpDict.get(plantID_str)
@@ -1270,6 +1273,7 @@ class Worker(QObject):
             for f in self.plant3dLayer_rot.getFeatures():
                 plantID_str = f[self.plant3dID]
                 if plantID_str and not plantID_str.isspace():
+                    plantID_str = plantID_str.strip()
                     plantID_idx = f[ID_int]
                     if self.plant3dAddOut_disabled or (self.plant3dAddOut == ""):
                         obs_str = '0'
