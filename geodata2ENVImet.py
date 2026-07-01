@@ -191,11 +191,11 @@ class Geo2ENVImet:
 
     def start_worker_inx(self):  # method to start the worker thread
         if self.dlg.cb_subArea.currentLayer() is None:
-            self.iface.messageBar().pushMessage("Error", "Please select at least a sub area layer", level=Qgis.MessageLevel.Warning)
+            self.iface.messageBar().pushMessage("Error", "Please select at least a sub area layer", level=Qgis.Warning)
             return
 
         if self.dlg.lineEdit.text() == "":
-            self.iface.messageBar().pushMessage("Error", "Please define an output filename", level=Qgis.MessageLevel.Warning)
+            self.iface.messageBar().pushMessage("Error", "Please define an output filename", level=Qgis.Warning)
             return
 
         self.thread = QThread()
@@ -499,7 +499,7 @@ class Geo2ENVImet:
         if self.dlg.cb_subArea.currentLayer() is None:
             self.iface.messageBar().pushMessage("Error",
                                                 "To get the highest structures (buildings and DEM) in the sub area, please select at least a sub area layer",
-                                                level=Qgis.MessageLevel.Warning)
+                                                level=Qgis.Warning)
             return
         self.worker.subAreaLayer = self.dlg.cb_subArea.currentLayer()
         self.worker.subAreaLayer_nonRot = self.dlg.cb_subArea.currentLayer()
@@ -642,7 +642,7 @@ class Geo2ENVImet:
         self.dlg.gb_Geodata.setEnabled(True)
 
         self.iface.messageBar().pushMessage("Success", "Output file written at " + self.worker.filename,
-                                            level=Qgis.MessageLevel.Success, duration=5)
+                                            level=Qgis.Success, duration=5)
 
     def updateCalcVertExt(self):
         self.dlg.l_highestStruct.setText(
@@ -660,7 +660,7 @@ class Geo2ENVImet:
         self.dlg.l_yGrids.setText(
             "y-Dimension: " + str(self.worker.yMeters) + " m; number of y-Grids: " + str(self.worker.JJ))
         if self.worker.msg != "":
-            self.iface.messageBar().pushMessage(self.worker.msg.split(":")[0], self.worker.msg.split(":")[1], level=Qgis.MessageLevel.Warning)
+            self.iface.messageBar().pushMessage(self.worker.msg.split(":")[0], self.worker.msg.split(":")[1], level=Qgis.Warning)
         # enable the gui that triggers the events
         self.set_general_gridding_settings_ui(True)
         self.startWorkerPreviewdz()
@@ -770,10 +770,10 @@ class Geo2ENVImet:
         dialog = QMessageBox()
         dialog.setText('Do you really want to clear all settings?')
         dialog.setWindowTitle('Confirmation required!')
-        dialog.setIcon(QMessageBox.Icon.Warning)
-        dialog.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
-        dialog.button(QMessageBox.StandardButton.Yes).setText("Yes")
-        dialog.button(QMessageBox.StandardButton.No).setText("No")
+        dialog.setIcon(QMessageBox.Warning)
+        dialog.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        dialog.button(QMessageBox.Yes).setText("Yes")
+        dialog.button(QMessageBox.No).setText("No")
         dialog.buttonClicked.connect(self.dialog_btn_clicked)
         dialog.exec()
 
@@ -892,7 +892,7 @@ class Geo2ENVImet:
             tmp_subAreaFeats = tmp_subAreaLayer.getFeatures()
             if tmp_subAreaFeats is None:
                 self.iface.messageBar().pushMessage("Error", "Selected sub area layer has no feature",
-                                                    level=Qgis.MessageLevel.Warning)
+                                                    level=Qgis.Warning)
             else:
                 # count the features in subArea-Layer
                 tmp_subAreaFeatCnt = sum(1 for _ in tmp_subAreaFeats)
@@ -901,7 +901,7 @@ class Geo2ENVImet:
                                                         "More than 1 feature in sub area layer - please use a layer "
                                                         "that contains only one polygon feature, this determines the "
                                                         "bounding box of your model area",
-                                                        level=Qgis.MessageLevel.Warning)
+                                                        level=Qgis.Warning)
                 else:
                     print(tmp_subAreaLayer)
                     dataseries.SelectedSubArea = tmp_subAreaLayer
@@ -916,7 +916,7 @@ class Geo2ENVImet:
             tmp_subAreaFeats = tmp_subAreaLayer.getFeatures()
             if tmp_subAreaFeats is None:
                 self.iface.messageBar().pushMessage("Error", "Selected sub area layer has no feature",
-                                                    level=Qgis.MessageLevel.Warning)
+                                                    level=Qgis.Warning)
             else:
                 # count the features in subArea-Layer
                 tmp_subAreaFeatCnt = sum(1 for _ in tmp_subAreaFeats)
@@ -925,13 +925,13 @@ class Geo2ENVImet:
                                                         "More than 1 feature in sub area layer - please use a layer "
                                                         "that contains only one polygon feature, this determines the "
                                                         "bounding box of your model area",
-                                                        level=Qgis.MessageLevel.Warning)
+                                                        level=Qgis.Warning)
                 else:
                     # now that we ensured that there is only one polygon in the layer, we can call the worker
                     # (this also calls the previewdxyz)
                     self.startWorkerCalcVertExt()
         else:
-            self.iface.messageBar().pushMessage("Error", "Selected layer does not exist", level=Qgis.MessageLevel.Warning)
+            self.iface.messageBar().pushMessage("Error", "Selected layer does not exist", level=Qgis.Warning)
         self.update_summary(self.dlg.cb_summary_gridding)
 
     def start_db_manager(self):
@@ -942,7 +942,7 @@ class Geo2ENVImet:
             self.iface.messageBar().pushMessage("Error",
                                                 "Could not find a local ENVI-met installation / workspace to load "
                                                 "database lookup",
-                                                level=Qgis.MessageLevel.Warning)
+                                                level=Qgis.Warning)
 
     def load_db(self):
         if (self.dlg.tw_Main.currentWidget().objectName() == "tab_DB") and not self.db_loaded:
@@ -960,7 +960,7 @@ class Geo2ENVImet:
             self.iface.messageBar().pushMessage("Error",
                                                 "Could not find a local ENVI-met installation / workspace to load "
                                                 "database lookup",
-                                                level=Qgis.MessageLevel.Warning)
+                                                level=Qgis.Warning)
 
     def update_db(self):
         self.clear_db_tab()
@@ -1037,7 +1037,7 @@ class Geo2ENVImet:
         self.dlg.sb_height.valueChanged.connect(self.changeHeightValue)
         self.dlg.cb_dataLayers.currentIndexChanged.connect(self.changeSelectedVariable)
         self.dlg.cb_Output_SubArea.setShowCrs(True)
-        self.dlg.cb_Output_SubArea.setFilters(QgsMapLayerProxyModel.Filter.PolygonLayer)
+        self.dlg.cb_Output_SubArea.setFilters(QgsMapLayerProxyModel.PolygonLayer)
         self.dlg.cb_Output_SubArea.layerChanged.connect(self.select_cb_Output_SubArea)
         self.dlg.bt_Select_A.clicked.connect(self.Select_all_A)
         self.dlg.bt_Select_B.clicked.connect(self.Select_all_B)
@@ -1323,11 +1323,11 @@ class Geo2ENVImet:
     def start_sim(self):
         # check if a SIMX-file was selected by the user in UI
         if self.dlg.lb_simxFile.text() == 'None':
-            self.iface.messageBar().pushMessage("Error", "No simulation-file selected", level=Qgis.MessageLevel.Warning)
+            self.iface.messageBar().pushMessage("Error", "No simulation-file selected", level=Qgis.Warning)
             return
         # check if a project folder was selected by the user in UI
         if self.dlg.lb_selected_projFolder.text() == 'None':
-            self.iface.messageBar().pushMessage("Error", "No project-folder selected", level=Qgis.MessageLevel.Warning)
+            self.iface.messageBar().pushMessage("Error", "No project-folder selected", level=Qgis.Warning)
             return
 
         # find the workspace path and the installation path automatically
@@ -1348,14 +1348,14 @@ class Geo2ENVImet:
             if not userpathinfo == '':
                 installPath = userpathinfo.replace("sys.userdata", "")
             else:
-                self.iface.messageBar().pushMessage("Error", "No ENVI-met installation found!", level=Qgis.MessageLevel.Warning)
+                self.iface.messageBar().pushMessage("Error", "No ENVI-met installation found!", level=Qgis.Warning)
                 return
 
             if workspace == '':
-                self.iface.messageBar().pushMessage("Error", "No ENVI-met workspace found!", level=Qgis.MessageLevel.Warning)
+                self.iface.messageBar().pushMessage("Error", "No ENVI-met workspace found!", level=Qgis.Warning)
                 return
         else:
-            self.iface.messageBar().pushMessage("Error", "No ENVI-met installation found!", level=Qgis.MessageLevel.Warning)
+            self.iface.messageBar().pushMessage("Error", "No ENVI-met installation found!", level=Qgis.Warning)
             return
 
         envicore_path = installPath.replace('\\', '/') + 'win64/envicore_console.exe'
@@ -1406,7 +1406,7 @@ class Geo2ENVImet:
             else:
                 self.iface.messageBar().pushMessage("Error",
                                                     "The simulation-file (*.SIMX) is not inside the selected ENVI-met project-folder",
-                                                    level=Qgis.MessageLevel.Warning)
+                                                    level=Qgis.Warning)
                 return
 
             if workspace in projectFolder:
@@ -1414,7 +1414,7 @@ class Geo2ENVImet:
             else:
                 self.iface.messageBar().pushMessage("Error",
                                                     "The selected project-folder is not inside your ENVI-met workspace",
-                                                    level=Qgis.MessageLevel.Warning)
+                                                    level=Qgis.Warning)
                 return
             # print(f'{envicore_path} {workspace} {my_project_name} {simx_file}')
             # command = f'{envicore_path} {workspace} {my_project_name} {simx_file}'
@@ -1443,7 +1443,7 @@ class Geo2ENVImet:
         else:
             self.iface.messageBar().pushMessage("Error",
                                                 "Could not find a project.infoX file inside folder. Are you sure the selected folder is a valid ENVI-met project-folder",
-                                                level=Qgis.MessageLevel.Warning)
+                                                level=Qgis.Warning)
             return
 
     def select_simx(self):
@@ -1457,13 +1457,13 @@ class Geo2ENVImet:
 
     def save_simx_file(self):
         if not self.dlg.cb_generalSettings.isChecked():
-            self.iface.messageBar().pushMessage("Error", "General Settings are not defined", level=Qgis.MessageLevel.Warning)
+            self.iface.messageBar().pushMessage("Error", "General Settings are not defined", level=Qgis.Warning)
             return
         if not self.dlg.cb_meteo.isChecked():
-            self.iface.messageBar().pushMessage("Error", "Meteorology is not defined", level=Qgis.MessageLevel.Warning)
+            self.iface.messageBar().pushMessage("Error", "Meteorology is not defined", level=Qgis.Warning)
             return
         if self.dlg.le_simxDest.text().isspace() or (self.dlg.le_simxDest.text() == ""):
-            self.iface.messageBar().pushMessage("Error", "No output file location defined", level=Qgis.MessageLevel.Warning)
+            self.iface.messageBar().pushMessage("Error", "No output file location defined", level=Qgis.Warning)
             return
 
         self.thread = QThread()
@@ -1880,18 +1880,18 @@ class Geo2ENVImet:
         self.dlg.cb_MapLayerRasterSurf.setShowCrs(True)
         self.dlg.cb_MapLayerRasterSP.setShowCrs(True)
 
-        self.dlg.cb_buildingLayer.setFilters(QgsMapLayerProxyModel.Filter.PolygonLayer)
-        self.dlg.cb_surfLayer.setFilters(QgsMapLayerProxyModel.Filter.PolygonLayer)
-        self.dlg.cb_simplePlantLayer.setFilters(QgsMapLayerProxyModel.Filter.PolygonLayer)
-        self.dlg.cb_plant3dLayer.setFilters(QgsMapLayerProxyModel.Filter.PointLayer)
-        self.dlg.cb_subArea.setFilters(QgsMapLayerProxyModel.Filter.PolygonLayer)
-        self.dlg.cb_demLayer.setFilters(QgsMapLayerProxyModel.Filter.RasterLayer)
-        self.dlg.cb_recLayer.setFilters(QgsMapLayerProxyModel.Filter.PointLayer)
-        self.dlg.cb_srcPLayer.setFilters(QgsMapLayerProxyModel.Filter.PointLayer)
-        self.dlg.cb_srcLLayer.setFilters(QgsMapLayerProxyModel.Filter.LineLayer)
-        self.dlg.cb_srcALayer.setFilters(QgsMapLayerProxyModel.Filter.PolygonLayer)
-        self.dlg.cb_MapLayerRasterSurf.setFilters(QgsMapLayerProxyModel.Filter.RasterLayer)
-        self.dlg.cb_MapLayerRasterSP.setFilters(QgsMapLayerProxyModel.Filter.RasterLayer)
+        self.dlg.cb_buildingLayer.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+        self.dlg.cb_surfLayer.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+        self.dlg.cb_simplePlantLayer.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+        self.dlg.cb_plant3dLayer.setFilters(QgsMapLayerProxyModel.PointLayer)
+        self.dlg.cb_subArea.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+        self.dlg.cb_demLayer.setFilters(QgsMapLayerProxyModel.RasterLayer)
+        self.dlg.cb_recLayer.setFilters(QgsMapLayerProxyModel.PointLayer)
+        self.dlg.cb_srcPLayer.setFilters(QgsMapLayerProxyModel.PointLayer)
+        self.dlg.cb_srcLLayer.setFilters(QgsMapLayerProxyModel.LineLayer)
+        self.dlg.cb_srcALayer.setFilters(QgsMapLayerProxyModel.PolygonLayer)
+        self.dlg.cb_MapLayerRasterSurf.setFilters(QgsMapLayerProxyModel.RasterLayer)
+        self.dlg.cb_MapLayerRasterSP.setFilters(QgsMapLayerProxyModel.RasterLayer)
 
         self.dlg.cb_bTop.setAllowEmptyFieldName(True)
         self.dlg.cb_bBot.setAllowEmptyFieldName(True)
@@ -1913,23 +1913,23 @@ class Geo2ENVImet:
         self.dlg.tb_zPreview.setReadOnly(True)
 
         self.dlg.cb_bTop.setFilters(
-            QgsFieldProxyModel.Filter.Int | QgsFieldProxyModel.Filter.LongLong | QgsFieldProxyModel.Filter.Numeric)
+            QgsFieldProxyModel.Int | QgsFieldProxyModel.LongLong | QgsFieldProxyModel.Numeric)
         self.dlg.cb_bBot.setFilters(
-            QgsFieldProxyModel.Filter.Int | QgsFieldProxyModel.Filter.LongLong | QgsFieldProxyModel.Filter.Numeric)
-        self.dlg.cb_bName.setFilters(QgsFieldProxyModel.Filter.String)
-        self.dlg.cb_bWall.setFilters(QgsFieldProxyModel.Filter.String)
-        self.dlg.cb_bRoof.setFilters(QgsFieldProxyModel.Filter.String)
-        self.dlg.cb_bGreenWall.setFilters(QgsFieldProxyModel.Filter.String)
-        self.dlg.cb_bGreenRoof.setFilters(QgsFieldProxyModel.Filter.String)
-        self.dlg.cb_bBPS.setFilters(QgsFieldProxyModel.Filter.String)
-        self.dlg.cb_surfID.setFilters(QgsFieldProxyModel.Filter.String)
-        self.dlg.cb_simplePlantID.setFilters(QgsFieldProxyModel.Filter.String)
-        self.dlg.cb_plant3dID.setFilters(QgsFieldProxyModel.Filter.String)
-        self.dlg.cb_plant3dAddOut.setFilters(QgsFieldProxyModel.Filter.String)
-        self.dlg.cb_recID.setFilters(QgsFieldProxyModel.Filter.String)
-        self.dlg.cb_srcPID.setFilters(QgsFieldProxyModel.Filter.String)
-        self.dlg.cb_srcLID.setFilters(QgsFieldProxyModel.Filter.String)
-        self.dlg.cb_srcAID.setFilters(QgsFieldProxyModel.Filter.String)
+            QgsFieldProxyModel.Int | QgsFieldProxyModel.LongLong | QgsFieldProxyModel.Numeric)
+        self.dlg.cb_bName.setFilters(QgsFieldProxyModel.String)
+        self.dlg.cb_bWall.setFilters(QgsFieldProxyModel.String)
+        self.dlg.cb_bRoof.setFilters(QgsFieldProxyModel.String)
+        self.dlg.cb_bGreenWall.setFilters(QgsFieldProxyModel.String)
+        self.dlg.cb_bGreenRoof.setFilters(QgsFieldProxyModel.String)
+        self.dlg.cb_bBPS.setFilters(QgsFieldProxyModel.String)
+        self.dlg.cb_surfID.setFilters(QgsFieldProxyModel.String)
+        self.dlg.cb_simplePlantID.setFilters(QgsFieldProxyModel.String)
+        self.dlg.cb_plant3dID.setFilters(QgsFieldProxyModel.String)
+        self.dlg.cb_plant3dAddOut.setFilters(QgsFieldProxyModel.String)
+        self.dlg.cb_recID.setFilters(QgsFieldProxyModel.String)
+        self.dlg.cb_srcPID.setFilters(QgsFieldProxyModel.String)
+        self.dlg.cb_srcLID.setFilters(QgsFieldProxyModel.String)
+        self.dlg.cb_srcAID.setFilters(QgsFieldProxyModel.String)
 
         self.dlg.cb_buildingLayer.layerChanged.connect(self.select_cb_buildingClick)
         self.dlg.cb_surfLayer.layerChanged.connect(self.select_cb_surfClick)
