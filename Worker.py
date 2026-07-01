@@ -952,8 +952,11 @@ class Worker(QObject):
         grid1_int_array = grid1_array.astype(int)
 
         # fill grids cnt
-        self.II = grid1_int_array.shape[1]
-        self.JJ = grid1_int_array.shape[0]
+        if self.II > 0 and self.JJ > 0:
+            grid1_int_array = self._conform_to_grid(grid1_int_array)
+        else:
+            self.II = grid1_int_array.shape[1]
+            self.JJ = grid1_int_array.shape[0]
 
         grid1_str_array = grid1_int_array.astype(str)
         return grid1_str_array, grid1_int_array
@@ -1111,6 +1114,21 @@ class Worker(QObject):
             #QgsProject.instance().addMapLayer(input_layer)
         return input_layer
 
+    def _conform_to_grid(self, arr):
+        # GDAL's rasterize vs. warp/clip pipelines can disagree by one cell across GDAL
+        # versions (seen going from QGIS 3.34 to 3.44). Force every gridded layer onto the
+        # canonical model grid (self.JJ rows x self.II cols): crop extra boundary cells,
+        # pad shortfalls with 0 (numeric) or "" (string) so all layers stay aligned.
+        target = (self.JJ, self.II)
+        if arr.shape == target:
+            return arr
+        fill = "" if arr.dtype.kind in ("U", "S") else 0
+        out = np.full(target, fill, dtype=arr.dtype)
+        r = min(arr.shape[0], self.JJ)
+        c = min(arr.shape[1], self.II)
+        out[:r, :c] = arr[:r, :c]
+        return out
+
     def rasterize_gdal(self, input_layer, field, get_strArray: bool = False, burn_val: bool = False,
                        init_val=None, no_data_val: int = 0):
         context = self.get_safe_processing_context()
@@ -1135,8 +1153,11 @@ class Worker(QObject):
         grid1_int_array = grid1_band.ReadAsArray().astype(int)
         grid1_band.FlushCache()
 
-        self.II = grid1_int_array.shape[1]
-        self.JJ = grid1_int_array.shape[0]
+        if self.II > 0 and self.JJ > 0:
+            grid1_int_array = self._conform_to_grid(grid1_int_array)
+        else:
+            self.II = grid1_int_array.shape[1]
+            self.JJ = grid1_int_array.shape[0]
 
         if get_strArray:
             return grid1_int_array.astype(str), grid1_int_array
