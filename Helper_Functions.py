@@ -39,13 +39,13 @@ def get_color_scale_interpolation():
     interpolation = 1
     if C_COLOR_SCALE_INTERPOLATION == 0:
         # Discrete
-        interpolation = QgsColorRampShader.Discrete
+        interpolation = QgsColorRampShader.Type.Discrete
     elif C_COLOR_SCALE_INTERPOLATION == 1:
         # Interpolated
-        interpolation = QgsColorRampShader.Interpolated
+        interpolation = QgsColorRampShader.Type.Interpolated
     elif C_COLOR_SCALE_INTERPOLATION == 2:
         # Exact
-        interpolation = QgsColorRampShader.Exact
+        interpolation = QgsColorRampShader.Type.Exact
     return interpolation
 
 
@@ -53,13 +53,13 @@ def get_color_scale_mode():
     mode = 0
     if C_COLOR_SCALE_MODE == 0:
         # Equal Interval
-        mode = QgsColorRampShader.EqualInterval
+        mode = QgsColorRampShader.ClassificationMode.EqualInterval
     elif C_COLOR_SCALE_MODE == 1:
         # Continuous
         mode = QgsColorRampShader.Continous
     elif C_COLOR_SCALE_MODE == 2:
         # Quantile
-        mode = QgsColorRampShader.Quantile
+        mode = QgsColorRampShader.ClassificationMode.Quantile
     return mode
 
 
